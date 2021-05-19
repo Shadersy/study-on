@@ -63,43 +63,36 @@ class BillingAuthenticator extends AbstractFormLoginAuthenticator
             throw new InvalidCsrfTokenException();
         }
 
+        $user = $this->billingClient->login($credentials['email'], $credentials['password']);
 
-        //
-        $response = $this->billingClient->login($credentials['email'], $credentials['password']);
-
-
-
-
-        if ($response) {
+        if ($user == null) {
             // fail authentication with a custom error
             throw new CustomUserMessageAuthenticationException('Invalid credentials.');
         }
 
         else
         {
-            $user = $userProvider->loadUserByUsername($credentials['email']);
+//            $user = $userProvider->loadUserByUsername($credentials['email']);
+              $user->setEmail($credentials['email']);
         }
+
 
         return $user;
     }
 
     public function checkCredentials($credentials, UserInterface $user)
     {
-        // Check the user's password or other credentials and return true or false
+
+
         // If there are no credentials to check, you can just return true
-        throw new \Exception('TODO: check the credentials inside '.__FILE__);
+//        throw new \Exception('TODO: check the credentials inside '.__FILE__);
+        return true;
     }
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $providerKey)
     {
-        if ($targetPath = $this->getTargetPath($request->getSession(), $providerKey)) {
-            return new RedirectResponse('http://stackoverflow.com');
-//            return new RedirectResponse($targetPath);
-        }
+            return new RedirectResponse('http://study-on.local:81/');
 
-
-        // For example : return new RedirectResponse($this->urlGenerator->generate('some_route'));
-        throw new \Exception('TODO: provide a valid redirect inside '.__FILE__);
     }
 
     protected function getLoginUrl()

@@ -6,6 +6,7 @@ use App\Entity\Course;
 use App\Entity\Lesson;
 use App\Form\CourseType;
 use App\Repository\CourseRepository;
+use App\Security\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -32,6 +33,12 @@ class CourseController extends AbstractController
      */
     public function new(Request $request): Response
     {
+//        $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
+
+        $user = $this->getUser()->getUsername();
+
+//        var_dump($this->container->get('security.token_storage')->getToken());
+        return new Response('Well hi there '.$user);
 
         $course = new Course();
         $form = $this->createForm(CourseType::class, $course);

@@ -12,7 +12,7 @@ class BillingClient {
         $ch = curl_init();
 
 
-        curl_setopt ($ch, CURLOPT_URL, 'http://billing.study-on.local/api/v1/auth');
+        curl_setopt ($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($parameters));
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -32,7 +32,8 @@ class BillingClient {
     public function login(string $login, string $password) : ?User
     {
 
-        $apiToken = json_decode($this->sendRequest('/api/v1/auth', ['username' => $login, 'password' => $password]), true);
+        $apiToken = json_decode($this->sendRequest('http://billing.study-on.local/api/v1/auth',
+            ['username' => $login, 'password' => $password]), true);
 
 
         if (in_array('Invalid credentials.', $apiToken)) {
@@ -54,5 +55,27 @@ class BillingClient {
         $user->setApiToken($apiToken['token']);
 
         return $user;
+    }
+
+    public function profile(string $token) {
+
+        $ch = curl_init();
+
+        $requestHeader =  "Authorization: Bearer ".$token;
+
+        curl_setopt ($ch, CURLOPT_URL, 'http://billing.study-on.local/api');
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+           $requestHeader
+        ));
+
+        $result = curl_exec($ch);
+        curl_close($ch);
+
+        var_dump($result);
+
+        return $result;
     }
 }
