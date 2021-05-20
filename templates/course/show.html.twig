@@ -4,40 +4,41 @@
 
 
 {% block stylesheets %}
- 	
-       <link href="{{ asset('build/styles.css') }}" rel="stylesheet" />
 
- {% endblock %}   
+    <link href="{{ asset('build/styles.css') }}" rel="stylesheet"/>
+
+{% endblock %}
          
  {% block javascript %}
-    
-    	<script src="{{ asset('build/runtime.js') }}" />
+
+ <script src="{{ asset('build/runtime.js') }}" />
  	<script src="{{ asset('build/styles.js') }}" />
  {% endblock %}
  
 {% block body %}
-<div style="margin-left:2%">
-    <h1><b>{{ course.name }}</b></h1>
-    <h5><p>{{ course.description }}</p></h5>
-    <h1><b> Уроки </b></h1>
-    
-    
-    <ol>
-    {% for lesson in lessons %}
-    	<li><a style="text-decoration: none" href="{{ path('lesson_show', {'id': lesson.id}) }}">{{lesson.name}}</a></li>
-    	{% else %}
-            
-               <p>Уроки не добавлены</p>
-            
-        {% endfor %}
-    	
-    </ol>
+    <div style="margin-left:2%">
+        <h1><b>{{ course.name }}</b></h1>
+        <h5><p>{{ course.description }}</p></h5>
+        <h1><b> Уроки </b></h1>
 
-               
-    <a class="btn btn-outline-primary" href="{{ path('course_index') }}">К списку курсов</a>
-    <a class="btn btn-outline-primary" href="{{ path('course_edit', {'id': course.id}) }}">Редактировать курс</a>
-    <a class="btn btn-outline-primary" href="{{ path('lesson_new', {'id': course.id}) }}">Добавить урок</a>
-    
-    <p>{{ include('course/_delete_form.html.twig') }}</p>
+
+        <ol>
+            {% for lesson in lessons %}
+                <li><a style="text-decoration: none"
+                       href="{{ path('lesson_show', {'id': lesson.id}) }}">{{ lesson.name }}</a></li>
+            {% else %}
+
+                <p>Уроки не добавлены</p>
+
+            {% endfor %}
+
+        </ol>
+
+
+        <a class="btn btn-outline-primary" href="{{ path('course_index') }}">К списку курсов</a>
+        <a class="btn btn-outline-primary" href="{{ path('course_edit', {'id': course.id}) }}">Редактировать курс</a>
+        <a class="btn btn-outline-primary" href="{{ path('lesson_new', {'id': course.id}) }}">Добавить урок</a>
+
+        <p>{{ include('course/_delete_form.html.twig') }}</p>
     </div>
 {% endblock %}

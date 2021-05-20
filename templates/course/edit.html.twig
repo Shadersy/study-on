@@ -5,7 +5,7 @@
 
  {% block stylesheets %}
 
-     <link href="{{ asset('build/styles.css') }}" rel="stylesheet" />
+     <link href="{{ asset('build/styles.css') }}" rel="stylesheet"/>
 
  {% endblock %}
 
@@ -22,7 +22,7 @@
     {{ include('course/_form.html.twig', {'button_label': 'Обновить'}) }}
 
     <div class="d-flex flex-row">
-        <div class="p-2"> <a class="btn btn-outline-primary" href="{{ path('course_index') }}">К списку курсов</a></div>
+        <div class="p-2"><a class="btn btn-outline-primary" href="{{ path('course_index') }}">К списку курсов</a></div>
         <div class="p-2">{{ include('course/_delete_form.html.twig') }}</div>
-</div>
-{% endblock %}
+    </div>
+    {% endblock %}

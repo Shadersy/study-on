@@ -34,7 +34,7 @@ class UserProvider implements UserProviderInterface, PasswordUpgraderInterface
         $user = new User();
         $user->setEmail($username);
 
-       return $user;
+        return $user;
 
 
     }

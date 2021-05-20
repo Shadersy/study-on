@@ -4,13 +4,13 @@
 
 
  {% block stylesheets %}
- 	
+
        <link href="{{ asset('build/styles.css') }}" rel="stylesheet" />
 
  {% endblock %}   
          
  {% block javascript %}
-    
+
     	<script src="{{ asset('build/runtime.js') }}" />
  	<script src="{{ asset('build/styles.js') }}" />
  {% endblock %}
@@ -18,28 +18,35 @@
 {% block body %}
 
     <h1 style="margin-left: 10%">Курсы</h1>
-	
+
+
 	<div class="row">
         {% for course in courses %}
           	 <div class="col-md-3">
           <div class="bg-light p-5 rounded">
  	<h2><a style="text-decoration: none" href="{{ path('course_show', {'id': course.id}) }}">{{ course.name }}
                 </a></h2>
-                
+
     <p class="lead"><p>{{ course.description }}</p></p>
 
   		</div>
-  		
+
                 </div>
-                
+
         {% else %}
         </div>
-        
+
             <h12>
                no records found
             </h12>
         {% endfor %}
-       
+
   <div class="container" style="width:50%">
-         <a  class="btn btn-outline-primary" href="{{ path('course_new') }}">Новый курс</a></button> </div>
+         <a  class="btn btn-outline-primary" href="{{ path('course_new') }}">Новый курс</a></button>
+      <div class="p-2"> <a class="btn btn-outline-primary" href="{{ path('app_profile') }}">Личный кабинет</a>
+          <div class="p-2"> <a class="btn btn-outline-primary" href="{{ path('app_logout') }}">Разлогиниться</a>
+      </div>
+  </div>
+  </div>
+
 {% endblock %}

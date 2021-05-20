@@ -1,0 +1,9 @@
+{% block title %}Регистрация{% endblock %}
+
+   {{ form_start(form) }}
+  {% form_theme form 'bootstrap_4_layout.html.twig' %}
+        {{ form_widget(form) }}
+<p></p><a class="btn btn-outline-primary" href="{{ path('app_login') }}">Авторизоваться</a></p>
+{{ form_end(form) }}
+
+

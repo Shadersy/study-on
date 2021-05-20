@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+
 /**
  * @Route("/lesson")
  */
@@ -48,7 +49,7 @@ class LessonController extends AbstractController
 
 
         $form->handleRequest($request);
-	
+
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($lesson);
@@ -68,7 +69,7 @@ class LessonController extends AbstractController
      */
     public function show(Lesson $lesson): Response
     {
-    	$course = $lesson->getCourse();
+        $course = $lesson->getCourse();
         return $this->render('lesson/show.html.twig', [
             'lesson' => $lesson,
             'course' => $course,
@@ -87,12 +88,12 @@ class LessonController extends AbstractController
             ->getForm();
 
         $form->handleRequest($request);
-	    $course = $lesson->getCourse();
-	
+        $course = $lesson->getCourse();
+
         if ($form->isSubmitted() && $form->isValid()) {
             $this->getDoctrine()->getManager()->flush();
 
-            return $this->redirectToRoute('course_show', ['id' =>$lesson->getCourse()->getId()]);
+            return $this->redirectToRoute('course_show', ['id' => $lesson->getCourse()->getId()]);
         }
 
         return $this->render('lesson/edit.html.twig', [
@@ -107,7 +108,7 @@ class LessonController extends AbstractController
      */
     public function delete(Request $request, Lesson $lesson): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$lesson->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $lesson->getId(), $request->request->get('_token'))) {
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($lesson);
             $entityManager->flush();

@@ -68,12 +68,9 @@ class BillingAuthenticator extends AbstractFormLoginAuthenticator
         if ($user == null) {
             // fail authentication with a custom error
             throw new CustomUserMessageAuthenticationException('Invalid credentials.');
-        }
-
-        else
-        {
+        } else {
 //            $user = $userProvider->loadUserByUsername($credentials['email']);
-              $user->setEmail($credentials['email']);
+            $user->setEmail($credentials['email']);
         }
 
 
@@ -82,8 +79,6 @@ class BillingAuthenticator extends AbstractFormLoginAuthenticator
 
     public function checkCredentials($credentials, UserInterface $user)
     {
-
-
         // If there are no credentials to check, you can just return true
 //        throw new \Exception('TODO: check the credentials inside '.__FILE__);
         return true;
@@ -91,8 +86,7 @@ class BillingAuthenticator extends AbstractFormLoginAuthenticator
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $providerKey)
     {
-            return new RedirectResponse('http://study-on.local:81/');
-
+        return new RedirectResponse('http://study-on.local:81/');
     }
 
     protected function getLoginUrl()

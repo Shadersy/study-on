@@ -6,13 +6,17 @@ namespace App\Service;
 use App\Repository\UserRepository;
 use App\Security\User;
 
-class BillingClient {
 
-    protected function sendRequest(string $url, array $parameters) {
+class BillingClient
+{
+
+
+    protected function sendRequest(string $url, array $parameters)
+    {
         $ch = curl_init();
 
 
-        curl_setopt ($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($parameters));
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -29,7 +33,7 @@ class BillingClient {
         return $result;
     }
 
-    public function login(string $login, string $password) : ?User
+    public function login(string $login, string $password): ?User
     {
 
         $apiToken = json_decode($this->sendRequest('http://billing.study-on.local/api/v1/auth',
@@ -47,8 +51,6 @@ class BillingClient {
         $jwtPayload = json_decode($tokenPayload);
 
         $user = new User();
-        //здесь как я полагаю нужно не выделять память под нового юзера а доставать через this->getUser (интерфейс)
-        //просьба пока не обращать внимание на хардкод в константах
 
 
         $user->setRoles($jwtPayload->roles);
@@ -57,25 +59,59 @@ class BillingClient {
         return $user;
     }
 
-    public function profile(string $token) {
+    public function getBalanceToProfile(string $token)
+    {
 
         $ch = curl_init();
 
-        $requestHeader =  "Authorization: Bearer ".$token;
 
-        curl_setopt ($ch, CURLOPT_URL, 'http://billing.study-on.local/api');
+        $requestHeader = "Authorization: Bearer " . $token;
+
+
+        curl_setopt($ch, CURLOPT_URL, 'http://billing.study-on.local/api');
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
         curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-           $requestHeader
+            $requestHeader
         ));
 
-        $result = curl_exec($ch);
+        $balance = curl_exec($ch);
+
         curl_close($ch);
 
-        var_dump($result);
 
-        return $result;
+        return $balance;
+    }
+
+
+    public function doSignup(string $email, string $password): ?User
+    {
+
+        $ch = curl_init();
+
+        $apiToken = json_decode($this->sendRequest('http://billing.study-on.local/api/v1/register',
+            ['email' => $email, 'password' => $password]), true);
+
+
+        if ($apiToken == null) {
+            return null;
+        }
+
+
+        $tokenParts = explode(".", $apiToken['token']);
+        $tokenHeader = base64_decode($tokenParts[0]);
+        $tokenPayload = base64_decode($tokenParts[1]);
+        $jwtHeader = json_decode($tokenHeader);
+        $jwtPayload = json_decode($tokenPayload);
+
+        $user = new User();
+
+
+        $user->setRoles($jwtPayload->roles);
+        $user->setApiToken($apiToken['token']);
+
+
+        return $user;
     }
 }

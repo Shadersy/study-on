@@ -33,13 +33,6 @@ class CourseController extends AbstractController
      */
     public function new(Request $request): Response
     {
-//        $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
-
-        $user = $this->getUser()->getUsername();
-
-//        var_dump($this->container->get('security.token_storage')->getToken());
-        return new Response('Well hi there '.$user);
-
         $course = new Course();
         $form = $this->createForm(CourseType::class, $course);
         $form->handleRequest($request);
@@ -68,7 +61,7 @@ class CourseController extends AbstractController
     	$courseId = $course->getId();
         return $this->render('course/show.html.twig', [
             'lessons' => $lesson,
-            'course' => $course,   
+            'course' => $course,
         ]);
     }
 

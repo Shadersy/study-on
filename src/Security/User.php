@@ -8,6 +8,7 @@ class User implements UserInterface
 {
     private $email;
     private $apiToken;
+    private $password;
 
     private $roles = [];
 
@@ -40,7 +41,7 @@ class User implements UserInterface
      */
     public function getUsername(): string
     {
-        return (string) $this->email;
+        return (string)$this->email;
     }
 
     /**
@@ -69,7 +70,12 @@ class User implements UserInterface
      */
     public function getPassword(): ?string
     {
-        return null;
+        return $this->password;
+    }
+
+    public function setPassword(string $password)
+    {
+        $this->password = $password;
     }
 
     /**
@@ -89,5 +95,10 @@ class User implements UserInterface
     {
         // If you store any temporary, sensitive data on the user, clear it here
         // $this->plainPassword = null;
+    }
+
+    public function getBalance()
+    {
+        // TODO: Implement getBalance() method.
     }
 }

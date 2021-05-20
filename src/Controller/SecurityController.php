@@ -2,30 +2,41 @@
 
 namespace App\Controller;
 
+use App\Entity\Course;
+use App\Entity\User;
+use App\Form\CourseType;
 use App\Service\BillingClient;
+use Symfony\Component\Form\Extension\Core\Type\PasswordType;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Form\FormTypeInterface;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 class SecurityController extends AbstractController
 {
     private $bilingService;
 
-    public function __construct(BillingClient $billingService) {
+    public function __construct(BillingClient $billingService)
+    {
         $this->bilingService = $billingService;
     }
 
     /**
      * @Route("/login", name="app_login")
      */
-    public function login(AuthenticationUtils $authenticationUtils): Response
+    public function login(AuthenticationUtils $authenticationUtils, AuthorizationCheckerInterface $authChecker): Response
     {
-        // if ($this->getUser()) {
-        //     return $this->redirectToRoute('target_path');
-        // }
-        // get the login error if there is one
+
+        if ($this->getUser() != null) {
+            return $this->redirectToRoute('main_course_index');
+        }
+
         $error = $authenticationUtils->getLastAuthenticationError();
         // last username entered by the user
         $lastUsername = $authenticationUtils->getLastUsername();
@@ -44,16 +55,66 @@ class SecurityController extends AbstractController
     /**
      * @Route("/profile", name="app_profile", methods={"GET"})
      */
-    public function profile(AuthenticationUtils $authenticationUtils) : Response
+    public function profile(): Response
     {
 
-        $balance = $this->bilingService->profile($this->get('security.token_storage')->
-        getToken()->getUser()->getApiToken());
+        $userFromToken = $this->get('security.token_storage')->
+        getToken()->getUser();
 
-        $error = $authenticationUtils->getLastAuthenticationError();
-        // last username entered by the user
-        $lastUsername = $authenticationUtils->getLastUsername();
-        return $this->render('security/login.html.twig', ['last_username' => $balance, 'error' => $error]);
+        $balance = $this->bilingService->getBalanceToProfile($userFromToken->getApiToken());
 
+
+        return $this->render('security/profile.html.twig', [
+            'username' => $userFromToken->getEmail(),
+            'roles' => $userFromToken->getRoles(),
+            'balance' => $balance
+        ]);
     }
+
+
+    /**
+     * @Route("/signup", name="app_registry",  methods={"GET","POST"})
+     */
+    public function signup(Request $request, AuthorizationCheckerInterface $authChecker): Response
+    {
+
+
+        if ($this->getUser() != null) {
+            return $this->redirectToRoute('main_course_index');
+        }
+
+        $user = new \App\Security\User();
+
+        $form = $this->createFormBuilder($user)
+            ->add('email', TextType::class)
+            ->add('password', TextType::class)
+            ->add('password', PasswordType::class)
+            ->add('save', SubmitType::class, array('label' => 'Зарегстрировать'))
+            ->getForm();
+
+
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+
+            $email = $form->getData()->getEmail();
+            $password = $form->getData()->getPassword();
+
+
+            if ($this->bilingService->doSignup($email, $password) == null) {
+                echo 'cannot create user';
+                return $this->redirectToRoute('app_registry');
+            }
+
+
+            //перед этим не получилось засэтить токен регистрации в токен сторедж, поскольку
+            //тот должен реализовывать токен интерфейс а у нас стринга
+            return $this->redirectToRoute('app_profile');
+        }
+
+        return $this->render('security/register.html.twig', array(
+            'form' => $form->createView(),
+        ));
+    }
+
 }

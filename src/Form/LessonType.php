@@ -15,8 +15,7 @@ class LessonType extends AbstractType
             ->add('name')
             ->add('content')
             ->add('number')
-            ->add('course')
-        ;
+            ->add('course');
     }
 
     public function configureOptions(OptionsResolver $resolver)
