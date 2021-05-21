@@ -58,9 +58,9 @@ class StudyonTest extends WebTestCase
 
         $crawler = $this->doAuth($client);
 
-        $client->followRedirect();
+        $crawler = $client->followRedirect();
 
-        $this->assertCount(3, $crawler->filter('a[href^=\'course1\']'));
+        $this->assertCount(3, $crawler->filter('h2'));
 
     }
 
@@ -117,14 +117,18 @@ class StudyonTest extends WebTestCase
 
         $crawler = $client->followRedirect();
 
+        //Количество курсов изменилось
+        $this->assertCount(4, $crawler->filter('h2'));
+
         $linkCourse = $crawler->filter('a:contains("curse number6")')->link();
         $crawler = $client->click($linkCourse);
 
         //Проверяем, что можно перейти на страницу курса
         $this->assertEquals(
-            200, // or Symfony\Component\HttpFoundation\Response::HTTP_OK
+            200,
             $client->getResponse()->getStatusCode()
         );
+
 
     }
 
@@ -169,14 +173,21 @@ class StudyonTest extends WebTestCase
         $form = $buttonCrawlerNode->form();
 
         $client->submit($form, array(
-            'form[name]' => 'Lesson6',
+            'form[name]' => 'Lesson8',
             'form[content]' => 'some content for lesson',
             'form[number]' => '15'
         ));
 
+
         //Переход на страницу курса к котоу привязан урок
         $this->assertTrue(
             $client->getResponse()->isRedirect('/course/2'));
+
+        $crawler = $client->followRedirect();
+
+        //Проверяем, что количество уроков изменилось
+        $this->assertCount(2, $crawler->filter('li'));
+
 
     }
 
@@ -197,7 +208,7 @@ class StudyonTest extends WebTestCase
         );
 
     }
-    
+
     public function testInvalidLesson() {
         $client = static::createClient();
         $this->setFixtures();
