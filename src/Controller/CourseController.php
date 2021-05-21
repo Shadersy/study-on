@@ -10,6 +10,7 @@ use App\Security\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
@@ -59,6 +60,8 @@ class CourseController extends AbstractController
 
     	$lesson = $this->getDoctrine()->getRepository(Lesson::class)->findBy(["course" => 		$course->getId()]);
     	$courseId = $course->getId();
+
+
         return $this->render('course/show.html.twig', [
             'lessons' => $lesson,
             'course' => $course,

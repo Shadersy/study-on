@@ -38,7 +38,7 @@ class Lesson
     /**
      * @ORM\Column(type="integer")
      * @Assert\LessThanOrEqual(
-     *     value = 1000
+     *     value = 10000
      * )
      */
     private $number;

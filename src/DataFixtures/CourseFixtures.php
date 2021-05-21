@@ -15,7 +15,7 @@ class CourseFixtures extends Fixture
 
 
             $course = new Course();
-            $course->setCode('symbolcode' . $i);
+            $course->setCode($i);
             $course->setName('curse number' . $i);
             $course->setDescription('description');
 
