@@ -33,15 +33,20 @@ class BillingClient
         return $result;
     }
 
-    public function login(string $login, string $password): ?User
+    public function login(string $login, string $password)
     {
 
         $apiToken = json_decode($this->sendRequest('http://billing.study-on.local/api/v1/auth',
             ['username' => $login, 'password' => $password]), true);
 
 
-        if (in_array('Invalid credentials.', $apiToken)) {
+
+        if($apiToken == null){
             return null;
+        }
+
+        if (in_array('Invalid credentials.', $apiToken)) {
+            return $apiToken;
         }
 
         $tokenParts = explode(".", $apiToken['token']);
@@ -85,14 +90,20 @@ class BillingClient
     }
 
 
-    public function doSignup(string $email, string $password): ?User
+    public function doSignup(string $email, string $password)
     {
 
         $ch = curl_init();
 
+
         $apiToken = json_decode($this->sendRequest('http://billing.study-on.local/api/v1/register',
             ['email' => $email, 'password' => $password]), true);
 
+
+
+        if (is_array($apiToken) && array_key_exists ( 'error' , $apiToken )) {
+            return $apiToken;
+        }
 
         if ($apiToken == null) {
             return null;

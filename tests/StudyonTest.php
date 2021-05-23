@@ -46,7 +46,7 @@ class StudyonTest extends WebTestCase
             $client->getResponse()->isRedirect('http://study-on.local:81/'));
     }
 
-   //тест страницы курса для проверки количества отображаемых курсов (не считает)
+
     public function testCoursePage() : void
     {
 

@@ -36,9 +36,11 @@
 
 
         <a class="btn btn-outline-primary" href="{{ path('course_index') }}">К списку курсов</a>
+        {% if is_granted('ROLE_SUPER_ADMIN') %}
         <a class="btn btn-outline-primary" href="{{ path('course_edit', {'id': course.id}) }}">Редактировать курс</a>
         <a class="btn btn-outline-primary" href="{{ path('lesson_new', {'id': course.id}) }}">Добавить урок</a>
 
         <p>{{ include('course/_delete_form.html.twig') }}</p>
+        {% endif %}
     </div>
 {% endblock %}

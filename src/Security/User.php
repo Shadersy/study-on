@@ -3,12 +3,34 @@
 namespace App\Security;
 
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Validator\Constraints as Assert;
 
 class User implements UserInterface
 {
+    /**
+     * @Assert\Email(
+     *     message = "'{{ value }}' не является email-адресом.",
+     * )
+     */
     private $email;
+
     private $apiToken;
+
+    /**
+     * @Assert\Length(
+     *      min = 5,
+     *      max = 50,
+     *      minMessage = "Пароль должен быть как минимум из {{ limit }} символов",
+     *      maxMessage = "Ваш пароль не должен быть длиннее {{ limit }} символов"
+     * )
+     */
     private $password;
+
+    /**
+     * @Assert\EqualTo(propertyPath="password", message = "Пароли не совпадают")
+     *
+     */
+    private $conformationPassword;
 
     private $roles = [];
 
@@ -71,6 +93,21 @@ class User implements UserInterface
     public function getPassword(): ?string
     {
         return $this->password;
+    }
+
+    public function setConformationPassword(string $conformationPassword)
+    {
+        $this->conformationPassword = $conformationPassword;
+    }
+
+    /**
+     * This method is not needed for apps that do not check user passwords.
+     *
+     * @see UserInterface
+     */
+    public function getConformationPassword(): ?string
+    {
+        return $this->conformationPassword;
     }
 
     public function setPassword(string $password)

@@ -42,7 +42,9 @@
         {% endfor %}
 
   <div class="container" style="width:50%">
+      {% if is_granted('ROLE_SUPER_ADMIN') %}
          <a  id="coursenew" class="btn btn-outline-primary" href="{{ path('course_new') }}">Новый курс</a></button>
+      {%  endif %}
       <div class="p-2"> <a class="btn btn-outline-primary" href="{{ path('app_profile') }}">Личный кабинет</a>
           <div class="p-2"> <a class="btn btn-outline-primary" href="{{ path('app_logout') }}">Разлогиниться</a>
       </div>

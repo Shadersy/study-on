@@ -1,9 +1,24 @@
+{% extends 'base.html.twig' %}
+
+
 {% block title %}Регистрация{% endblock %}
 
-   {{ form_start(form) }}
-  {% form_theme form 'bootstrap_4_layout.html.twig' %}
-        {{ form_widget(form) }}
-<p></p><a class="btn btn-outline-primary" href="{{ path('app_login') }}">Авторизоваться</a></p>
-{{ form_end(form) }}
+ {% block stylesheets %}
 
+     <link href="{{ asset('build/styles.css') }}" rel="stylesheet"/>
 
+ {% endblock %}
+
+ {% block javascript %}
+
+ <script src="{{ asset('build/runtime.js') }}" />
+ 	<script src="{{ asset('build/styles.js') }}" />
+ {% endblock %}
+
+{% block body %}
+<div class="d-flex justify-content-center">
+    <div style="margin-left:2%">
+        {{ include('security/_formregister.html.twig') }}
+    </div>
+</div>
+{% endblock %}

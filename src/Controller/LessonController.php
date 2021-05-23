@@ -15,27 +15,25 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 /**
  * @Route("/lesson")
  */
 class LessonController extends AbstractController
 {
-    /**
-     * @Route("/", name="lesson_index", methods={"GET"})
-     */
-    public function index(LessonRepository $lessonRepository): Response
-    {
-        return $this->render('lesson/index.html.twig', [
-            'lessons' => $lessonRepository->findAll(),
-        ]);
-    }
+
 
     /**
      * @Route("/new", name="lesson_new", methods={"GET","POST"})
      */
-    public function new(Request $request): Response
+    public function new(Request $request, AuthorizationCheckerInterface $authChecker): Response
     {
+
+        if (false === $authChecker->isGranted('ROLE_SUPER_ADMIN')) {
+            return $this->redirectToRoute('course_index');
+        }
+
         $lesson = new Lesson();
         $courseId = $request->query->get('id');
         $course = $this->getDoctrine()->getRepository(Course::class)->find($courseId);
@@ -79,8 +77,12 @@ class LessonController extends AbstractController
     /**
      * @Route("/{id}/edit", name="lesson_edit", methods={"GET","POST"})
      */
-    public function edit(Request $request, Lesson $lesson): Response
+    public function edit(Request $request, Lesson $lesson, AuthorizationCheckerInterface $authChecker): Response
     {
+        if (false === $authChecker->isGranted('ROLE_SUPER_ADMIN')) {
+            return $this->redirectToRoute('course_index');
+        }
+
         $form = $this->createFormBuilder($lesson)
             ->add('name', TextType::class)
             ->add('content', TextareaType::class)
@@ -106,8 +108,12 @@ class LessonController extends AbstractController
     /**
      * @Route("/{id}", name="lesson_delete", methods={"POST"})
      */
-    public function delete(Request $request, Lesson $lesson): Response
+    public function delete(Request $request, Lesson $lesson, AuthorizationCheckerInterface $authChecker): Response
     {
+        if (false === $authChecker->isGranted('ROLE_SUPER_ADMIN')) {
+            return $this->redirectToRoute('course_index');
+        }
+
         if ($this->isCsrfTokenValid('delete' . $lesson->getId(), $request->request->get('_token'))) {
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($lesson);
