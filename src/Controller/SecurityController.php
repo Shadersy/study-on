@@ -108,6 +108,7 @@ class SecurityController extends AbstractController
             $res  = $this->bilingService->doSignup($email, $password);
 
 
+
             if(is_array($res) && array_key_exists ( 'error' , $res )){
                 $response = new Response();
                 $response->setStatusCode('404');

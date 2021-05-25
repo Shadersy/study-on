@@ -15,6 +15,7 @@ class User implements UserInterface
     private $email;
 
     private $apiToken;
+    private $refreshToken;
 
     /**
      * @Assert\Length(
@@ -54,6 +55,17 @@ class User implements UserInterface
     public function setApiToken(string $apiToken)
     {
         $this->apiToken = $apiToken;
+    }
+
+
+    public function getRefreshToken(): ?string
+    {
+        return $this->refreshToken;
+    }
+
+    public function setRefreshToken(string $refreshToken)
+    {
+        $this->refreshToken = $refreshToken;
     }
 
     /**

@@ -60,6 +60,7 @@ class BillingClient
 
         $user->setRoles($jwtPayload->roles);
         $user->setApiToken($apiToken['token']);
+        $user->setRefreshToken($apiToken['refresh_token']);
 
         return $user;
     }
@@ -121,6 +122,7 @@ class BillingClient
 
         $user->setRoles($jwtPayload->roles);
         $user->setApiToken($apiToken['token']);
+        $user->setRefreshToken($apiToken["refreshToken"]);
 
 
         return $user;

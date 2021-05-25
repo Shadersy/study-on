@@ -68,7 +68,7 @@ class BillingAuthenticator extends AbstractFormLoginAuthenticator
 
 
         if ($user == null) {
-            // fail authentication with a custom error
+
             throw new CustomUserMessageAuthenticationException('Сервис временно недопступен, попробуйте авторизироваться позже.');
         }
 
@@ -81,6 +81,7 @@ class BillingAuthenticator extends AbstractFormLoginAuthenticator
 
 //            $user = $userProvider->loadUserByUsername($credentials['email']);
             $user->setEmail($credentials['email']);
+
         }
 
 
