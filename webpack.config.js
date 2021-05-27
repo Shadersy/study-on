@@ -1,5 +1,8 @@
 // webpack.config.js
 var Encore = require('@symfony/webpack-encore');
+var $ = require("jquery");
+
+global.$ = global.jQuery = $;
 
 Encore
     // каталог проекта , где будут храниться все скомпилированные ресурсы
@@ -9,7 +12,7 @@ Encore
     .setPublicPath('/build')
     
     // создаст public/build/app.js и public/build/app.css
-    .addEntry('styles', './assets/app.js')
+    .addEntry('app', './assets/app.js')
 
     // позволит обработку файлов sass/scss
     .enableSassLoader()
@@ -23,6 +26,7 @@ Encore
 
     // очистить outputPath dir перед каждым построением
     .cleanupOutputBeforeBuild()
+    
 
     // создать хешированные имена файлов (например, app.abc123.css)
     // .enableVersioning()

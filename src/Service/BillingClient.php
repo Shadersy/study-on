@@ -90,6 +90,28 @@ class BillingClient
         return $balance;
     }
 
+    public function getTransactions(string $token)
+    {
+        $ch = curl_init();
+
+
+        $requestHeader = "Authorization: Bearer " . $token;
+
+        curl_setopt($ch, CURLOPT_URL, 'http://billing.study-on.local/api/v1/transactions');
+
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+            $requestHeader
+        ));
+
+        $transactions = curl_exec($ch);
+
+        curl_close($ch);
+
+        return $transactions;
+    }
+
 
     public function doSignup(string $email, string $password)
     {
@@ -126,5 +148,52 @@ class BillingClient
 
 
         return $user;
+    }
+
+
+
+    public function getCourses(string $token)
+    {
+        $ch = curl_init();
+
+
+        $requestHeader = "Authorization: Bearer " . $token;
+
+        curl_setopt($ch, CURLOPT_URL, 'http://billing.study-on.local/api/v1/courses');
+
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+            $requestHeader
+        ));
+
+        $courses = curl_exec($ch);
+
+        curl_close($ch);
+
+        return $courses;
+    }
+
+
+    public function payCourse(string $token, string $code)
+    {
+        $ch = curl_init();
+
+        $requestHeader = "Authorization: Bearer " . $token;
+
+
+        curl_setopt($ch, CURLOPT_URL, 'http://billing.study-on.local/api/v1/courses/' .$code .'/pay');
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+            $requestHeader
+        ));
+
+        $response = curl_exec($ch);
+
+
+
+        return $response;
     }
 }

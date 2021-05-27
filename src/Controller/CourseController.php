@@ -7,6 +7,7 @@ use App\Entity\Lesson;
 use App\Form\CourseType;
 use App\Repository\CourseRepository;
 use App\Security\User;
+use App\Service\BillingClient;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -21,14 +22,54 @@ use Symfony\Component\Security\Core\Exception\AccessDeniedException;
  */
 class CourseController extends AbstractController
 {
+
+
+    private $bilingService;
+
+    public function __construct(BillingClient $billingService)
+    {
+        $this->bilingService = $billingService;
+    }
+
+
     /**
      * @Route("/", name="course_index", methods={"GET"})
      */
     public function index(CourseRepository $courseRepository): Response
     {
 
+        $userToken = $this->get('security.token_storage')->
+        getToken()->getUser()->getApiToken();
+
+        $billingCourses = json_decode($this->bilingService->getCourses($userToken));
+        $studyCourses = $courseRepository->findAll();
+
+
+        $result = [];
+
+        foreach ($studyCourses as $item) {
+            $result[$item->getCode()] = [
+                'code' => $item->getCode(),
+                'id' => $item->getId(),
+                'name' => $item->getName(),
+                'description' => $item->getDescription(),
+
+            ];
+        }
+
+        foreach ($billingCourses as $item) {
+            $item = (array)$item;
+            $result[$item['code']] = array_merge($item, $result[$item['code']]);
+        }
+//
+//
+//        echo '<pre>';
+//        var_dump($result);
+//        echo '</pre>';
+//
+//        exit();
         return $this->render('course/index.html.twig', [
-            'courses' => $courseRepository->findAll(),
+            'courses' => $result
         ]);
     }
 
@@ -65,8 +106,8 @@ class CourseController extends AbstractController
     public function show(Course $course): Response
     {
 
-    	$lesson = $this->getDoctrine()->getRepository(Lesson::class)->findBy(["course" => 		$course->getId()]);
-    	$courseId = $course->getId();
+        $lesson = $this->getDoctrine()->getRepository(Lesson::class)->findBy(["course" => $course->getId()]);
+        $courseId = $course->getId();
 
 
         return $this->render('course/show.html.twig', [
@@ -108,12 +149,30 @@ class CourseController extends AbstractController
             return $this->redirectToRoute('course_index');
         }
 
-        if ($this->isCsrfTokenValid('delete'.$course->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $course->getId(), $request->request->get('_token'))) {
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($course);
             $entityManager->flush();
         }
 
         return $this->redirectToRoute('course_index');
+    }
+
+
+
+    /**
+     * @Route("/{code}/pay", name="course_pay", methods={"GET"})
+     */
+    public function payCourse(Request $request, string $code, AuthorizationCheckerInterface $authChecker): Response
+    {
+
+
+        $userToken = $this->get('security.token_storage')->
+        getToken()->getUser()->getApiToken();
+
+        $this->bilingService->payCourse($userToken, $code);
+
+
+       return $this->redirectToROute('course_index');
     }
 }

@@ -3,52 +3,114 @@
 {% block title %}Course index{% endblock %}
 
 
+
  {% block stylesheets %}
 
-       <link href="{{ asset('build/styles.css') }}" rel="stylesheet" />
+     <link href="{{ asset('build/styles.css') }}" rel="stylesheet"/>
 
  {% endblock %}   
          
- {% block javascript %}
 
-    	<script src="{{ asset('build/runtime.js') }}" />
- 	<script src="{{ asset('build/styles.js') }}" />
- {% endblock %}
+    {% block javascripts %}
+
+        <script src="{{asset('build/runtime.js') }}"></script>
+        <script src="{{asset('build/app.js') }}"></script>
+        <script type="text/javascript" src="{{ asset('build/app.js')}}" ></script>
+
+    {% endblock %}
+
+
+
 
 {% block body %}
 
-    <h1 style="margin-left: 10%">Курсы</h1>
+<h1 style="margin-left: 10%">Курсы</h1>
 
 
-	<div class="row">
-        {% for course in courses %}
-          	 <div class="col-md-3">
-          <div class="bg-light p-5 rounded">
- 	<h2><a id="courseId" style="text-decoration: none" href="{{ path('course_show', {'id': course.id}) }}">{{ course.name }}
-                </a></h2>
+<div class="row">
+    {% for course in courses %}
+        <div class="col-md-3">
+            <div class="bg-light p-5 rounded">
+                <h2><a id="courseId" style="text-decoration: none"
+                       href="{{ path('course_show', {'id': course.id}) }}">{{ course.name }}
+                    </a></h2>
 
-    <p class="lead"><p>{{ course.description }}</p></p>
+                 <p class="lead"><p>{{ course.description }}</p></p>
+                 <p>  Стоимость: {{ course.cost==null?'Бесплатно':course.cost }} </p>
 
-  		</div>
 
-                </div>
 
-        {% else %}
+                {% if course.validity != null %}
+                    <button type="button" class="btn btn-dark" disabled="true"> Арендован до {{course.validity}}
+
+                {% elseif course.email != null %}
+                    <button type="button" class="btn btn-dark" disabled="true"> Куплено</button>
+
+                {% elseif course.type == 0 %}
+                <a  type="button" class="btn btn-warning" href="{{ path('course_pay', {'code': course.code}) }}"> Получить</a>
+
+            {% elseif course.type == 1 %}
+
+                <button type="button" class="btn btn-danger" > Арендовать </button>
+
+            {% else %}
+{#                <a type="button" class="btn btn-success" href="{{ path('course_pay', {'code': course.code}) }}"> Купить </a>#}
+                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal" onclick="show()">
+                    Launch demo modal
+                </button>
+{#            <button type="button"  class="btn btn-success"   data-toggle="modal" data-target="#exampleModal"> Купить</button>#}
+                {% endif %}
+
+            </div>
+
         </div>
 
-            <h12>
-               no records found
-            </h12>
-        {% endfor %}
 
-  <div class="container" style="width:50%">
-      {% if is_granted('ROLE_SUPER_ADMIN') %}
-         <a  id="coursenew" class="btn btn-outline-primary" href="{{ path('course_new') }}">Новый курс</a></button>
-      {%  endif %}
-      <div class="p-2"> <a class="btn btn-outline-primary" href="{{ path('app_profile') }}">Личный кабинет</a>
-          <div class="p-2"> <a class="btn btn-outline-primary" href="{{ path('app_logout') }}">Разлогиниться</a>
-      </div>
-  </div>
-  </div>
+    {% endfor %}
 
-{% endblock %}
+    <div class="container" style="width:50%">
+        {% if is_granted('ROLE_SUPER_ADMIN') %}
+            <a id="coursenew" class="btn btn-outline-primary" href="{{ path('course_new') }}">Новый курс</a>
+        {% endif %}
+        <div class="p-2"><a class="btn btn-outline-primary" href="{{ path('app_profile') }}">Личный кабинет</a>
+            <div class="p-2"><a class="btn btn-outline-primary" href="{{ path('app_logout') }}">Разлогиниться</a>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+
+    <!-- Modal -->
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    ...
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function show(){
+
+            $('#exampleModal').modal('show');
+
+        }
+    </script>
+    {% endblock %}
+
+

@@ -78,6 +78,21 @@ class SecurityController extends AbstractController
 
 
     /**
+     * @Route("/profile/transactions", name="app_transactions", methods={"GET"})
+     */
+    public function transactions() : Response
+    {
+        $userFromToken = $this->get('security.token_storage')->
+        getToken()->getUser();
+
+        $transactions = $this->bilingService->getTransactions($userFromToken->getApiToken());
+
+        return $this->render('security/transactions.html.twig', array(
+            'transactions' => json_decode($transactions, true)
+        ));
+    }
+
+    /**
      * @Route("/signup", name="app_registry",  methods={"GET","POST"})
      */
     public function signup(Request $request, AuthorizationCheckerInterface $authChecker, BillingAuthenticator $authenticator): Response
