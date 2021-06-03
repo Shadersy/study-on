@@ -97,7 +97,7 @@ class BillingAuthenticator extends AbstractFormLoginAuthenticator
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $providerKey)
     {
-        return new RedirectResponse('http://study-on.local:81/');
+        return new RedirectResponse('http://study-on.local:81/course');
     }
 
     protected function getLoginUrl()

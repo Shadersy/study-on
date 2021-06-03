@@ -15,7 +15,7 @@
  {% endblock %}
 
 {% block body %}
-    <div style="margin-left: 2%">
+
         <h1><b>{{ lesson.name }}</b></h1>
 
         <h4><p>Курс <a style="text-decoration: none"
@@ -26,5 +26,5 @@
         <p><a class="btn btn-outline-primary" href="{{ path('course_index') }}">К списку курсов</a></p>
 
         {{ include('lesson/_delete_form.html.twig') }}
-    </div>
+
 {% endblock %}

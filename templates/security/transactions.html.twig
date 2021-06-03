@@ -25,7 +25,7 @@
 
 
         <tr>
-            <th scope="col">#</th>
+            <th scope="col"></th>
             <th scope="col">Тип операции</th>
             <th scope="col">Курс</th>
             <th scope="col">Дата</th>
@@ -41,7 +41,7 @@
                 <th scope="row">
 
                 <td>{{ valueA['type'] }}</td>
-                <td>{{ valueA['course_code'] }}</td>
+                <td> <a href="{{ path('course_show_by_code', {'code': valueA['course_code']}) }}">{{ valueA['course_code'] }}</a></td>
                 <td>{{ valueA ['created_at']['date'] }}</td>
                 <td>{{valueA['amount']}}</td>
 

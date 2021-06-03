@@ -6,6 +6,7 @@ use App\Entity\Lesson;
 use App\Entity\Course;
 use App\Form\LessonType;
 use App\Repository\LessonRepository;
+use App\Service\BillingClient;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
@@ -16,6 +17,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 /**
  * @Route("/lesson")
@@ -23,6 +25,13 @@ use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 class LessonController extends AbstractController
 {
 
+
+    private $bilingService;
+
+    public function __construct(BillingClient $billingService)
+    {
+        $this->bilingService = $billingService;
+    }
 
     /**
      * @Route("/new", name="lesson_new", methods={"GET","POST"})
@@ -38,13 +47,12 @@ class LessonController extends AbstractController
         $courseId = $request->query->get('id');
         $course = $this->getDoctrine()->getRepository(Course::class)->find($courseId);
 
-        $form = $this->createFormBuilder($lesson)
-            ->add('name', TextType::class)
-            ->add('content', TextareaType::class)
-            ->add('number', IntegerType::class)
-            ->add('course', HiddenType::class, ['empty_data' => $course])
-            ->getForm();
 
+        $builder = $this->createFormBuilder($lesson);
+        $lessonType = new LessonType();
+        $lessonType->buildForm($builder, ['empty_data' => $course]);
+
+        $form = $builder->getForm();
 
         $form->handleRequest($request);
 
@@ -65,8 +73,28 @@ class LessonController extends AbstractController
     /**
      * @Route("/{id}", name="lesson_show", methods={"GET"})
      */
-    public function show(Lesson $lesson): Response
+    public function show(Lesson $lesson, AuthorizationCheckerInterface $authChecker): Response
     {
+        if ($this->get('security.token_storage')->getToken()->getUser() == 'anon.') {
+            throw new AccessDeniedException();
+        }
+
+        $userToken = $this->get('security.token_storage')->
+        getToken()->getUser()->getApiToken();
+
+
+
+        $courseAvailable = json_decode($this->bilingService->checkAvailableCourse(
+            $userToken,
+            $lesson->getCourse()->getCode()
+        ));
+
+
+
+        if (!$courseAvailable) {
+            throw new AccessDeniedException();
+        }
+
         $course = $lesson->getCourse();
         return $this->render('lesson/show.html.twig', [
             'lesson' => $lesson,
@@ -83,11 +111,14 @@ class LessonController extends AbstractController
             return $this->redirectToRoute('course_index');
         }
 
-        $form = $this->createFormBuilder($lesson)
-            ->add('name', TextType::class)
-            ->add('content', TextareaType::class)
-            ->add('number', IntegerType::class)
-            ->getForm();
+
+        $builder = $this->createFormBuilder($lesson);
+
+        $lessonType = new LessonType();
+        $lessonType->buildFormWithoutCourse($builder);
+
+        $form = $builder->getForm();
+
 
         $form->handleRequest($request);
         $course = $lesson->getCourse();

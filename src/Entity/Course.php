@@ -34,6 +34,16 @@ class Course
      */
     private $description;
 
+    /**
+     * @ORM\Column(type="smallint")
+     */
+    private $type;
+
+    /**
+     * @ORM\Column(type="float", nullable=true)
+     */
+    private $cost;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -78,5 +88,29 @@ class Course
     public function __toString()
     {
         return $this->name;
+    }
+
+    public function getType(): ?int
+    {
+        return $this->type;
+    }
+
+    public function setType(int $type): self
+    {
+        $this->type = $type;
+
+        return $this;
+    }
+
+    public function getCost(): ?float
+    {
+        return $this->cost;
+    }
+
+    public function setCost(?float $cost): self
+    {
+        $this->cost = $cost;
+
+        return $this;
     }
 }

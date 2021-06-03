@@ -38,8 +38,16 @@ class CourseController extends AbstractController
     public function index(CourseRepository $courseRepository): Response
     {
 
+        if ($this->get('security.token_storage')->getToken()->getUser() == 'anon.') {
+            return $this->render('course/index.html.twig', [
+                'courses' => $courseRepository->findAll()
+            ]);
+        }
+
+
         $userToken = $this->get('security.token_storage')->
         getToken()->getUser()->getApiToken();
+
 
         $billingCourses = json_decode($this->bilingService->getCourses($userToken));
         $studyCourses = $courseRepository->findAll();
@@ -56,18 +64,13 @@ class CourseController extends AbstractController
 
             ];
         }
-
         foreach ($billingCourses as $item) {
             $item = (array)$item;
             $result[$item['code']] = array_merge($item, $result[$item['code']]);
         }
-//
-//
-//        echo '<pre>';
-//        var_dump($result);
-//        echo '</pre>';
-//
-//        exit();
+
+
+
         return $this->render('course/index.html.twig', [
             'courses' => $result
         ]);
@@ -84,14 +87,36 @@ class CourseController extends AbstractController
 
         $course = new Course();
         $form = $this->createForm(CourseType::class, $course);
+
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->persist($course);
-            $entityManager->flush();
+            $userToken = $this->get('security.token_storage')->
+            getToken()->getUser()->getApiToken();
 
-            return $this->redirectToRoute('course_index');
+            $params = [
+                'title' => $request->request->get('course')['name'],
+                'code' =>  $request->request->get('course')['code'],
+                'price' => $request->request->get('course')['cost'],
+                'type' => $request->request->get('course')['type']
+            ];
+
+
+            $billingCreatingCourse = (array)$this->bilingService->createCourse($userToken, $params);
+
+            if (!$billingCreatingCourse) {
+                $this->addFlash('wrong', "Сервис временно не доступен");
+            } elseif (array_key_exists('success', $billingCreatingCourse)) {
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->persist($course);
+                $entityManager->flush();
+
+                return $this->redirectToRoute('course_index');
+            } else {
+                    $this->addFlash('wrong', $billingCreatingCourse['message']);
+
+            }
+
         }
 
         return $this->render('course/new.html.twig', [
@@ -125,13 +150,37 @@ class CourseController extends AbstractController
             return $this->redirectToRoute('course_index');
         }
 
+        $currentCode =  $course->getCode();
+
         $form = $this->createForm(CourseType::class, $course);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $this->getDoctrine()->getManager()->flush();
+            $userToken = $this->get('security.token_storage')->
+            getToken()->getUser()->getApiToken();
 
-            return $this->redirectToRoute('course_show', ['id' => $course->getId()]);
+            $params = [
+                'title' => $request->request->get('course')['name'],
+                'code' =>  $request->request->get('course')['code'],
+                'price' => $request->request->get('course')['cost'],
+                'type' => $request->request->get('course')['type'],
+            ];
+
+
+
+
+
+            $billingEditCourse = (array)$this->bilingService->editCourse($userToken, $params, $currentCode);
+
+            if (!$billingEditCourse) {
+                $this->addFlash('wrong', "Сервис временно не доступен");
+            } elseif (array_key_exists('success', $billingEditCourse)) {
+                    $this->getDoctrine()->getManager()->flush();
+
+                    return $this->redirectToRoute('course_show', ['id' => $course->getId()]);
+            } else {
+                    $this->addFlash('wrong', $billingEditCourse['message']);
+            }
         }
 
         return $this->render('course/edit.html.twig', [
@@ -170,9 +219,50 @@ class CourseController extends AbstractController
         $userToken = $this->get('security.token_storage')->
         getToken()->getUser()->getApiToken();
 
-        $this->bilingService->payCourse($userToken, $code);
+        $response = $this->bilingService->payCourse($userToken, $code);
 
 
-       return $this->redirectToROute('course_index');
+        if (array_key_exists('success', json_decode($response))) {
+            $this->addFlash('notice', 'Курс успешно оплачен');
+        } else {
+            $this->addFlash('notice', 'Недостаточно средств для покупки');
+        }
+
+        return $this->redirectToROute('course_index');
     }
+
+
+    /**
+     * @Route("/find/{code}", name="course_show_by_code", methods={"GET"})
+     */
+    public function showByCode(string $code): Response
+    {
+
+        $userToken = $this->get('security.token_storage')->
+        getToken()->getUser()->getApiToken();
+
+        $courseAvailable = json_decode($this->bilingService->checkAvailableCourse($userToken, $code));
+
+
+        if (!$courseAvailable) {
+            throw new AccessDeniedException();
+        }
+
+
+        $course = $this->getDoctrine()
+            ->getRepository(Course::class)->findOneBy(["code" => $code]);
+
+
+        $lesson = $this->getDoctrine()
+            ->getRepository(Lesson::class)->findBy(["course" =>
+                $course->getId()
+            ]);
+
+
+        return $this->render('course/show.html.twig', [
+            'lessons' => $lesson,
+            'course' => $course,
+        ]);
+    }
+
 }

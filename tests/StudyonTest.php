@@ -3,6 +3,7 @@
 namespace App\Tests;
 
 use App\DataFixtures\CourseFixtures;
+use http\Client;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Liip\TestFixturesBundle\Test\FixturesTrait;
 
@@ -12,21 +13,55 @@ class StudyonTest extends WebTestCase
 
     use FixturesTrait;
 
-    private function doAuth($client)
+
+    public function makeClient()
+    {
+        $client = static::createClient();
+
+        $client->disableReboot();
+
+        $client->getContainer()->set(
+            'App\Service\BillingClient',
+            new BillingClientMock()
+        );
+
+        return $client;
+    }
+
+    private function doAuth(& $client)
     {
 
-        $crawler = $client->request('GET', 'http://study-on.local:81/login');
+        $crawler = $client->request('GET', '/login');
 
         $buttonCrawlerNode = $crawler->selectButton('submit');
 
         $form = $buttonCrawlerNode->form(array(
-            'email' => 'shadersy98@mail.ru',
+            'email' => 'admin@mail.ru',
             'password' => 'qweasd',
         ));
 
         $client->submit($form);
 
+
         return $crawler;
+    }
+
+    private function doAuthClient( $client)
+    {
+
+        $crawler = $client->request('GET', '/login');
+
+        $buttonCrawlerNode = $crawler->selectButton('submit');
+
+        $form = $buttonCrawlerNode->form(array(
+            'email' => 'admin@mail.ru',
+            'password' => 'qweasd',
+        ));
+
+        $client->submit($form);
+
+
+        return $client;
     }
 
     private function setFixtures()
@@ -36,38 +71,106 @@ class StudyonTest extends WebTestCase
         ));
     }
 
-    //тест на успешную авторизацию под существующим пользователем
-    public function testAuthorization(): void
+    public function testRegisterSuccessfull(): void
     {
-        $client = static::createClient();
-        $this->doAuth($client);
+        $client = $this->makeClient();
+
+        $crawler = $client->request('POST', '/signup');
+
+
+        $buttonCrawlerNode = $crawler->selectButton('Принять');
+
+        $form = $buttonCrawlerNode->form(array(
+            'form[email]' => 'admin@mail.ru',
+            'form[password]' => 'qweasd',
+            'form[conformationPassword]' => 'qweasd'
+        ));
+
+       $client->submit($form);
+
+
 
         $this->assertTrue(
-            $client->getResponse()->isRedirect('http://study-on.local:81/'));
+            $client->getResponse()->isRedirect('http://study-on.local:81/course'));
+
     }
 
+  // тест на успешную авторизацию под существующим пользователем
+    public function testAuthorization(): void
+    {
+        $client = $this->makeClient();
+        $this->doAuth($client);
 
+
+        $this->assertTrue(
+            $client->getResponse()->isRedirect('http://study-on.local:81/course'));
+    }
+
+//проверяем возможность анонима видеть список курсов и невозможность читать содержимое урока
     public function testCoursePage() : void
     {
-
-        $client = static::createClient();
-
+        $client = $this->makeClient();
         $this->loadFixtures(array(
             'App\DataFixtures\CourseFixtures'
         ));
 
-        $crawler = $this->doAuth($client);
+
+        $crawler = $client->request('GET', '/course');
+
 
         $crawler = $client->followRedirect();
 
-        $this->assertCount(3, $crawler->filter('h2'));
 
+
+        $this->assertCount(5, $crawler->filter('h2'));
+
+        $link = $crawler
+            ->filter('a:contains("Гитарный")')
+            ->link();
+
+        $crawler = $client->click($link);
+
+        $this->assertStringContainsString(
+            'Уроки',
+            $client->getResponse()->getContent()
+        );
+
+        $link = $crawler
+            ->filter('a:contains("Постановка рук")')
+            ->link();
+
+        $crawler = $client->click($link);
+
+        $this->assertTrue(
+            $client->getResponse()->isRedirect('/login'));
+
+
+        $crawler = $client->request('GET', '/lesson/1');
+        $this->assertTrue(
+            $client->getResponse()->isRedirect('/login'));
     }
 
 
+//
+//    public function testDeletingOportunity() {
+//
+//
+//        $client = $this->makeClient();
+//
+//        $this->loadFixtures(array(
+//            'App\DataFixtures\CourseFixtures'
+//        ));
+//
+//        $clientAfterAuthorization = $this->doAuthClient($client);
+//        $crawler = $clientAfterAuthorization->followRedirect();
+//
+//
+//
+//    }
+
     public function testOpeningCoursePage(): void
     {
-        $client = static::createClient();
+        $client = $this->makeClient();
         $crawler = $this->doAuth($client);
 
         $crawler = $client->followRedirect();
@@ -89,7 +192,7 @@ class StudyonTest extends WebTestCase
 
     public function testNewCourse(): void
     {
-        $client = static::createClient();
+        $client = $this->makeClient();
         $this->setFixtures();
         $crawler = $this->doAuth($client);
         $crawler = $client->followRedirect();
@@ -111,7 +214,7 @@ class StudyonTest extends WebTestCase
         ));
 
 
-        //Проверяем, что редиректит  на главную после создания
+//        //Проверяем, что редиректит  на главную после создания
         $this->assertTrue(
             $client->getResponse()->isRedirect('/course/'));
 
@@ -132,11 +235,10 @@ class StudyonTest extends WebTestCase
 
     }
 
-
-    //переход на страницу создания урока и создаем урок
+////    переход на страницу создания урока и создаем урок
     public function testNewLesson()
     {
-        $client = static::createClient();
+        $client = $this->makeClient();
         $this->setFixtures();
         $crawler = $this->doAuth($client);
         $crawler = $client->followRedirect();
@@ -194,7 +296,7 @@ class StudyonTest extends WebTestCase
     //проверка статус-кода 404 при несуществующем курсе
     public function testInvalidUrlCourse() {
 
-        $client = static::createClient();
+        $client = $this->makeClient();
         $this->setFixtures();
         $crawler = $this->doAuth($client);
         $crawler = $client->followRedirect();
@@ -210,7 +312,7 @@ class StudyonTest extends WebTestCase
     }
 
     public function testInvalidLesson() {
-        $client = static::createClient();
+        $client = $this->makeClient();
         $this->setFixtures();
         $crawler = $this->doAuth($client);
         $crawler = $client->followRedirect();
@@ -225,10 +327,11 @@ class StudyonTest extends WebTestCase
 
 
     public function testUniqueCodeCourse() {
-        $client = static::createClient();
+        $client = $this->makeClient();
         $this->setFixtures();
         $crawler = $this->doAuth($client);
         $crawler = $client->followRedirect();
+
 
         $link = $crawler
             ->filter('a:contains("Новый")')

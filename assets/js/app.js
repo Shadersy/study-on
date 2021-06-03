@@ -1,5 +1,5 @@
 import './styles/app.scss';
-import greet from './greet';
+import popper from './popper';
 
 import * as $ from 'jquery';
 global.$ = global.jQuery = $;

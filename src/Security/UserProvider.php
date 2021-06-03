@@ -65,9 +65,7 @@ class UserProvider implements UserProviderInterface, PasswordUpgraderInterface
         $jwtHeader = json_decode($tokenHeader);
         $jwtPayload = json_decode($tokenPayload);
 
-//        dump($jwtPayload);
-//        dump(array_key_exists('exp', $jwtPayload));
-//        exit();
+
         return $user;
     }
 

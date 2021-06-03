@@ -5,6 +5,7 @@ namespace App\Security;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 
+
 class User implements UserInterface
 {
     /**

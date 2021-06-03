@@ -1,12 +1,17 @@
 import './styles/app.scss';
-import greet from './greet';
+import popper from './popper.min';
 
 import * as $ from 'jquery';
 global.$ = global.jQuery = $;
 
- $(document).ready(function() {
-     $('body').prepend('<h1>'+greet('jill')+'</h1>');
- });
+$('button.stas-top').click(function (e) {
+
+
+    $('frida').attr('href', '/'+ $(this).attr('data-code') + '/pay');
+    $('#exampleModal').modal('show');
+
+
+})
 
 
 require('bootstrap');

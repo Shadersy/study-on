@@ -1,4 +1,5 @@
 // webpack.config.js
+require("popper.js")
 var Encore = require('@symfony/webpack-encore');
 var $ = require("jquery");
 

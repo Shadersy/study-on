@@ -15,12 +15,12 @@
  {% endblock %}
 
 {% block body %}
-    <div style="margin-left:2%">
+
         <h1><b>Cоздать новый урок</b></h1>
 
 
         {{ include('lesson/_form.html.twig') }}
 
         <a class="btn btn-outline-primary" href="{{ path('course_index') }}">К списку курсов</a>
-    </div>
+
 {% endblock %}

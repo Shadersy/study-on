@@ -13,8 +13,10 @@ class CourseType extends AbstractType
     {
         $builder
             ->add('code')
+            ->add('type')
             ->add('name')
-            ->add('description');
+            ->add('description')
+            ->add('cost');
     }
 
     public function configureOptions(OptionsResolver $resolver)

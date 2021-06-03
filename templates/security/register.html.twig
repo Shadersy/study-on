@@ -16,7 +16,8 @@
  {% endblock %}
 
 {% block body %}
-<div class="d-flex justify-content-center">
+    {% if error is not null %} {{ error }} {% endif %}
+    <div class="d-flex justify-content-center">
     <div style="margin-left:2%">
         {{ include('security/_formregister.html.twig') }}
     </div>

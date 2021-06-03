@@ -7,6 +7,7 @@ use App\Entity\User;
 use App\Form\CourseType;
 use App\Security\BillingAuthenticator;
 use App\Service\BillingClient;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\FormTypeInterface;
@@ -19,6 +20,8 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
+use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Guard\GuardAuthenticatorHandler;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 class SecurityController extends AbstractController
@@ -37,7 +40,7 @@ class SecurityController extends AbstractController
     {
 
         if ($this->getUser() != null) {
-            return $this->redirectToRoute('main_course_index');
+            return $this->redirectToRoute('course_index');
         }
 
         $error = $authenticationUtils->getLastAuthenticationError();
@@ -85,18 +88,27 @@ class SecurityController extends AbstractController
         $userFromToken = $this->get('security.token_storage')->
         getToken()->getUser();
 
+
         $transactions = $this->bilingService->getTransactions($userFromToken->getApiToken());
+
+
+
 
         return $this->render('security/transactions.html.twig', array(
             'transactions' => json_decode($transactions, true)
         ));
     }
 
+
+
     /**
      * @Route("/signup", name="app_registry",  methods={"GET","POST"})
      */
-    public function signup(Request $request, AuthorizationCheckerInterface $authChecker, BillingAuthenticator $authenticator): Response
-    {
+    public function signup(
+        Request $request,
+        GuardAuthenticatorHandler $guardHandler,
+        BillingAuthenticator $authenticator
+    ): Response {
 
 
         if ($this->getUser() != null) {
@@ -116,41 +128,47 @@ class SecurityController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-
             $email = $form->getData()->getEmail();
             $password = $form->getData()->getPassword();
 
             $res  = $this->bilingService->doSignup($email, $password);
 
 
-
-            if(is_array($res) && array_key_exists ( 'error' , $res )){
-                $response = new Response();
-                $response->setStatusCode('404');
-
-                echo 'Пользователь с таким Email уже существует';
-                return $this->render('security/register.html.twig', array(
-                    'form' => $form->createView(), $response));
-            }
-
             if ($res == null) {
-
                 $response = new Response();
                 $response->setStatusCode('404');
 
-                echo 'Сервис временно недоступен, попробуйте повторить позже';
+
                 return $this->render('security/register.html.twig', array(
-                    'form' => $form->createView(), $response));
+                    'form' => $form->createView(), 'error' => "Сервис временно недоступен", $response));
+            }
+
+            if (is_array($res) && array_key_exists('error', $res)) {
+                $response = new Response();
+                $response->setStatusCode('404');
+
+                return $this->render('security/register.html.twig', array(
+                    'form' => $form->createView(), 'error' => "Пользователь с таким email  существует", $response));
             }
 
 
-            //перед этим не получилось засэтить токен регистрации в токен сторедж, поскольку
-            //тот должен реализовывать токен интерфейс а у нас стринга
-            return $this->redirectToRoute('app_profile');
+
+            $user->setEmail($email);
+            $user->setPassword($password);
+            $user->setApiToken($res->getApiToken());
+
+
+            return $guardHandler->authenticateUserAndHandleSuccess(
+                $user,          // the User object you just created
+                $request,
+                $authenticator, // authenticator whose onAuthenticationSuccess you want to use
+                'main'          // the name of your firewall in security.yaml
+            );
+
         }
 
         return $this->render('security/register.html.twig', array(
-            'form' => $form->createView(),
+            'form' => $form->createView(), "error" => null
         ));
     }
 

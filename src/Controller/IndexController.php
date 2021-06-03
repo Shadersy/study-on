@@ -18,9 +18,7 @@ class IndexController extends AbstractController
      */
     public function index(CourseRepository $courseRepository): Response
     {
-        return $this->render('course/index.html.twig', [
-            'courses' => $courseRepository->findAll(),
-        ]);
+        return  $this->redirectToRoute('course_index');
     }
 
 }
