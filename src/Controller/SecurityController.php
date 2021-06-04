@@ -27,10 +27,12 @@ use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 class SecurityController extends AbstractController
 {
     private $bilingService;
+    private $tokenStorage;
 
-    public function __construct(BillingClient $billingService)
+    public function __construct(BillingClient $billingService, TokenStorageInterface $tokenStorage)
     {
         $this->bilingService = $billingService;
+        $this->tokenStorage = $tokenStorage;
     }
 
     /**
@@ -64,13 +66,8 @@ class SecurityController extends AbstractController
     public function profile(): Response
     {
 
-        $userFromToken = $this->get('security.token_storage')->
-        getToken()->getUser();
-
-
-
+        $userFromToken = $this->tokenStorage->getToken()->getUser();
         $balance = $this->bilingService->getBalanceToProfile($userFromToken->getApiToken());
-
 
         return $this->render('security/profile.html.twig', [
             'username' => $userFromToken->getEmail(),
@@ -85,13 +82,8 @@ class SecurityController extends AbstractController
      */
     public function transactions() : Response
     {
-        $userFromToken = $this->get('security.token_storage')->
-        getToken()->getUser();
-
-
+        $userFromToken = $this->tokenStorage->getToken()->getUser();
         $transactions = $this->bilingService->getTransactions($userFromToken->getApiToken());
-
-
 
 
         return $this->render('security/transactions.html.twig', array(

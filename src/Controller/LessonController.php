@@ -16,6 +16,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
@@ -27,10 +28,12 @@ class LessonController extends AbstractController
 
 
     private $bilingService;
+    private $tokenStorage;
 
-    public function __construct(BillingClient $billingService)
+    public function __construct(BillingClient $billingService,  TokenStorageInterface $tokenStorage)
     {
         $this->bilingService = $billingService;
+        $this->tokenStorage = $tokenStorage;
     }
 
     /**
@@ -75,17 +78,14 @@ class LessonController extends AbstractController
      */
     public function show(Lesson $lesson, AuthorizationCheckerInterface $authChecker): Response
     {
-        if ($this->get('security.token_storage')->getToken()->getUser() == 'anon.') {
+        if ($this->tokenStorage->getToken()->getUser() == 'anon.') {
             throw new AccessDeniedException();
         }
 
-        $userToken = $this->get('security.token_storage')->
-        getToken()->getUser()->getApiToken();
-
-
+        $token = $this->tokenStorage->getToken()->getUser()->getApiToken();
 
         $courseAvailable = json_decode($this->bilingService->checkAvailableCourse(
-            $userToken,
+            $token,
             $lesson->getCourse()->getCode()
         ));
 

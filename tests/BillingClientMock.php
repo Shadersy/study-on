@@ -17,7 +17,7 @@ class BillingClientMock extends BillingClient
 
         $user->setEmail($login);
         $user->setPassword($password);
-        $user->setApiToken("kek");
+        $user->setApiToken("");
         $roles[] = 'ROLE_USER';
         $user->setRoles($roles);
 

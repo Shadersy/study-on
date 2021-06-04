@@ -27,6 +27,8 @@ class BillingClient
         ));
 
         $result = curl_exec($ch);
+
+
         curl_close($ch);
 
 
@@ -35,6 +37,7 @@ class BillingClient
 
     public function login(string $login, string $password)
     {
+
 
         $apiToken = json_decode(
             $this->sendRequest(
@@ -50,6 +53,7 @@ class BillingClient
             return $apiToken;
         }
 
+
         $tokenParts = explode(".", $apiToken['token']);
         $tokenHeader = base64_decode($tokenParts[0]);
         $tokenPayload = base64_decode($tokenParts[1]);
@@ -62,6 +66,7 @@ class BillingClient
         $user->setRoles($jwtPayload->roles);
         $user->setApiToken($apiToken['token']);
         $user->setRefreshToken($apiToken['refresh_token']);
+
 
         return $user;
     }
@@ -194,7 +199,6 @@ class BillingClient
         ));
 
         $response = curl_exec($ch);
-
 
         curl_close($ch);
 

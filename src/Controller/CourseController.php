@@ -13,6 +13,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
@@ -25,10 +26,12 @@ class CourseController extends AbstractController
 
 
     private $bilingService;
+    private $tokenStorage;
 
-    public function __construct(BillingClient $billingService)
+    public function __construct(BillingClient $billingService, TokenStorageInterface $tokenStorage)
     {
         $this->bilingService = $billingService;
+        $this->tokenStorage = $tokenStorage;
     }
 
 
@@ -38,18 +41,15 @@ class CourseController extends AbstractController
     public function index(CourseRepository $courseRepository): Response
     {
 
-        if ($this->get('security.token_storage')->getToken()->getUser() == 'anon.') {
+        if ($this-$this->tokenStorage->getToken()->getUser() == 'anon.') {
             return $this->render('course/index.html.twig', [
                 'courses' => $courseRepository->findAll()
             ]);
         }
 
 
-        $userToken = $this->get('security.token_storage')->
-        getToken()->getUser()->getApiToken();
-
-
-        $billingCourses = json_decode($this->bilingService->getCourses($userToken));
+        $token = $this->tokenStorage->getToken()->getUser()->getApiToken();
+        $billingCourses = json_decode($this->bilingService->getCourses($token));
         $studyCourses = $courseRepository->findAll();
 
 
@@ -91,7 +91,7 @@ class CourseController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $userToken = $this->get('security.token_storage')->
+            $userToken = $this->tokenStorage->
             getToken()->getUser()->getApiToken();
 
             $params = [
@@ -156,8 +156,8 @@ class CourseController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $userToken = $this->get('security.token_storage')->
-            getToken()->getUser()->getApiToken();
+
+            $token = $this->tokenStorage->getToken()->getUser()->getApiToken();
 
             $params = [
                 'title' => $request->request->get('course')['name'],
@@ -166,11 +166,7 @@ class CourseController extends AbstractController
                 'type' => $request->request->get('course')['type'],
             ];
 
-
-
-
-
-            $billingEditCourse = (array)$this->bilingService->editCourse($userToken, $params, $currentCode);
+            $billingEditCourse = (array)$this->bilingService->editCourse($token, $params, $currentCode);
 
             if (!$billingEditCourse) {
                 $this->addFlash('wrong', "Сервис временно не доступен");
@@ -214,12 +210,9 @@ class CourseController extends AbstractController
      */
     public function payCourse(Request $request, string $code, AuthorizationCheckerInterface $authChecker): Response
     {
+        $token = $this->tokenStorage->getToken()->getUser()->getApiToken();
 
-
-        $userToken = $this->get('security.token_storage')->
-        getToken()->getUser()->getApiToken();
-
-        $response = $this->bilingService->payCourse($userToken, $code);
+        $response = $this->bilingService->payCourse($token, $code);
 
 
         if (array_key_exists('success', json_decode($response))) {
@@ -237,12 +230,8 @@ class CourseController extends AbstractController
      */
     public function showByCode(string $code): Response
     {
-
-        $userToken = $this->get('security.token_storage')->
-        getToken()->getUser()->getApiToken();
-
-        $courseAvailable = json_decode($this->bilingService->checkAvailableCourse($userToken, $code));
-
+        $token = $this->tokenStorage->getToken()->getUser()->getApiToken();
+        $courseAvailable = json_decode($this->bilingService->checkAvailableCourse($token, $code));
 
         if (!$courseAvailable) {
             throw new AccessDeniedException();
