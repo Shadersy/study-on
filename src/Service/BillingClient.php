@@ -281,4 +281,22 @@ class BillingClient
 
         return $response;
     }
+
+    public function refreshToken(string $expiredToken)
+    {
+        $response = json_decode($this->sendRequest(
+            $_ENV["HOST_NAME_BILLING"] . '/api/v1/token/refresh',
+            ['refresh_token' => $expiredToken]));
+
+        return $response;
+    }
+
+    public function getPayload(string $token)
+    {
+        $tokenParts = explode(".", $token);
+        $tokenPayload = base64_decode($tokenParts[1]);
+        $jwtPayload = json_decode($tokenPayload);
+
+        return $jwtPayload;
+    }
 }

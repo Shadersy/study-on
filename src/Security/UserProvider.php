@@ -12,6 +12,14 @@ use Symfony\Component\Security\Core\User\UserProviderInterface;
 
 class UserProvider implements UserProviderInterface, PasswordUpgraderInterface
 {
+
+    private $bilingService;
+
+    public function __construct(BillingClient $billingService)
+    {
+        $this->bilingService = $billingService;
+    }
+
     /**
      * Symfony calls this method if you use features like switch_user
      * or remember_me.
@@ -58,13 +66,15 @@ class UserProvider implements UserProviderInterface, PasswordUpgraderInterface
             throw new UnsupportedUserException(sprintf('Invalid user class "%s".', get_class($user)));
         }
 
+        $jwtPayload = $this->bilingService->getPayload($user->getApiToken());
 
-        $tokenParts = explode(".", $user->getApiToken());
-        $tokenHeader = base64_decode($tokenParts[0]);
-        $tokenPayload = base64_decode($tokenParts[1]);
-        $jwtHeader = json_decode($tokenHeader);
-        $jwtPayload = json_decode($tokenPayload);
+        $expDateTime = date('Y-m-d H:i:s', $jwtPayload->exp);
+        $currentDateTime = date('Y-m-d H:i:s', time());
 
+        if ($expDateTime < $currentDateTime){
+            $user->setApiToken($this->bilingService->refreshToken($user->getRefreshToken())->token);
+            $user->setRefreshToken($this->bilingService->refreshToken($user->getRefreshToken())->refresh_token);
+        }
 
         return $user;
     }
