@@ -41,7 +41,7 @@ class CourseController extends AbstractController
     public function index(CourseRepository $courseRepository): Response
     {
 
-        if ($this-$this->tokenStorage->getToken()->getUser() == 'anon.') {
+        if ($this->tokenStorage->getToken()->getUser() == 'anon.') {
             return $this->render('course/index.html.twig', [
                 'courses' => $courseRepository->findAll()
             ]);
