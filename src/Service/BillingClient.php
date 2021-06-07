@@ -10,7 +10,6 @@ use App\Security\User;
 class BillingClient
 {
 
-
     protected function sendRequest(string $url, array $parameters)
     {
         $ch = curl_init();
