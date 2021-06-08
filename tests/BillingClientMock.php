@@ -2,6 +2,7 @@
 
 namespace App\Tests;
 
+use App\Entity\Course;
 use App\Security\User;
 use App\Service\BillingClient;
 
@@ -14,14 +15,12 @@ class BillingClientMock extends BillingClient
 
         $user = new User();
 
-
         $user->setEmail($login);
         $user->setPassword($password);
-        $user->setApiToken("eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpYXQiOjE2MjI3OTE4NzIsImV4cCI6MTYyMjc5NTQ3Miwicm9sZXMiOlsiUk9MRV9TVVBFUl9BRE1JTiIsIlJPTEVfVVNFUiJdLCJ1c2VybmFtZSI6ImFkbWluQG1haWwucnUifQ.LKiDRPT6I6V_pq2y-zJQWEURknmPY4-bWsPYtwfRASIjHIRZ8hGhWmNr7y2fkbmyHqmf6w5o_OG8GQTTC8rlesLRersfpiwwc27OjWNRL0GkpbXh9jfi0bVosY_AmAD8YocG3UDiYxwhNMbHU_vN-JAgczKtwn7ZCtNVcPTrkRMH1s0qc8AwSnnd2DfeIG-cbZAdCtQygzg9Plym6zyOslQ-MAgrio3VNY1ijbabN4wBHvonOYViGr-VoXZ_KGdJ1rIp3uu6kCJxLV6_QwbrPRZvEDB7Nm5J5UBRKzT8LD36RnQHlFf3Pg6TMMyzRXeBq0gSGuwNaotoyB6h1aJQ9wprNZz3WbN_6wKBdaZO3c6byDakEfGPz_Nm53LPtOGWzbo-CxHP_hiAEB4tJ-mss56aXsTVU5Yxtn1FnUTzfLpwjrmwbw_TyXKAEFkfe5g441aPCGpVBdIm8HkriVZpCm_aaZZ-C11-OlJanMQQg7plnMQv0kzIJ1CySBgga0wirhMss88l_XDFa4V20wyo2dLpNRrfZmmKjTPkcRt_xOuyN5gR1V5W2anj-VLnZjSbwLLYrQ5d4c_3HmO0uJUhy4mm6jeOOHr8lXwGIy_ACt_j0fMpWQHoaiXgF-IF4GDl0oGirNYn0N-YFNN52E445TVgd_mgVUM28mIdoYqDgt4");
-        $roles[] = 'ROLE_USER';
+        $user->setApiToken("eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpYXQiOjE2MjMxMzcyODIsImV4cCI6MTYyMzE0MDg4Miwicm9sZXMiOlsiUk9MRV9TVVBFUl9BRE1JTiIsIlJPTEVfVVNFUiJdLCJ1c2VybmFtZSI6ImFkbWluQG1haWwucnUifQ.cOVCfoEfJOJJ2wLzpLzf_isqoLZcOSGFtCcoSBzmMHvKYW80Kf4BfxTAGgXwEVSRzIQdEiemtuQePaq74pQrntyVEW5QFZk7h67gX5xpHal9mJIhVUsthMolqWoOkUtKLccL4hriRDEe2dTrdaEqQuoQy_b0xnGCphxgYa3PQV77iETjwgVLCMnHL3lEx0ONd1VnhD4FANVM-pGNDsAw2KGdJbaW-BQ0fgfXwrwsITwWqzOrt5nQ4YYW7CdAJ7WBed4jyFeFVxcnU2CxeXJ0GVYPw8sZxMLsXfuT4DO9UwAYQeTX76YIH_6efMPY9z1anCyWPtGLRbOZl33SwJPHGylSQ2VW26DBvctEt_LhXitHEpiNb0cpJOsDVC5NKIeRt1LG3YCq00BNKnWYbcpGb6Gv0VFFwCe-pSVKZzAH5AwZC5OTaAwJ6JsBaFP-zpsAp4Lwm5qiYO4RhHxLfU-a4AAC2e7eKXUQT4RqxvATNk8TC_ct7ZitQxv-QZQR47ak1d1u1cjhCX_F-qzYSSDwYCSThfSBWcqBvKQ_Zhesut_VnEm5rYu0Qbk4Hq3nL6_AZ8pf0olVEUET90o1828kpy2ceqkdVfov7-Ep6-pWiosIoUsYkFmTMZ8lMO8n6a2x5srilp2zwA9mWra3UAfwBkeKFcUCNpsdKL8H-10CMTA");
+        $user->setRefreshToken("a7ef7e9edd00fbabcceb0854883a1d2c78002e203af48cba74de77de1874f06a8c08f3a4d700b874b1be6a24a07273a4e8da25fc58f335e6ffe3063ec77729d9");
+        $roles[] = 'ROLE_SUPER_ADMIN';
         $user->setRoles($roles);
-
-
 
         return $user;
     }
@@ -39,5 +38,23 @@ class BillingClientMock extends BillingClient
         return $user;
     }
 
+    public function createCourse(string $token, array $params)
+    {
+
+        if ($params['type'] == 0 && $params['price'] != 0) {
+
+            return 'Нельзя установить стоимость бесплатному курса  больше 0';
+        }
+
+        if ($params['price'] < 0) {
+           return 'Цена не может быть меньше 0';
+        }
+
+        if ($params['type'] != 0 && $params['price'] < 1) {
+          return 'У платных курсов должна быть указана цена';
+        }
+
+        return new Course();
+    }
 
 }

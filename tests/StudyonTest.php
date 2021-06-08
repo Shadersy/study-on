@@ -37,7 +37,7 @@ class StudyonTest extends WebTestCase
 
         $form = $buttonCrawlerNode->form(array(
             'email' => 'admin@mail.ru',
-            'password' => 'qweasd',
+            'password' => 'qwerty',
         ));
 
         $client->submit($form);
@@ -82,8 +82,8 @@ class StudyonTest extends WebTestCase
 
         $form = $buttonCrawlerNode->form(array(
             'form[email]' => 'admin@mail.ru',
-            'form[password]' => 'qweasd',
-            'form[conformationPassword]' => 'qweasd'
+            'form[password]' => 'qwerty',
+            'form[conformationPassword]' => 'qwerty'
         ));
 
        $client->submit($form);
@@ -162,26 +162,6 @@ class StudyonTest extends WebTestCase
 //
 //    }
 //
-    public function testOpeningCoursePage(): void
-    {
-        $client = $this->makeClient();
-        $crawler = $this->doAuth($client, 'shadersy98@mail.ru', 'qwerty');
-        $crawler = $client->followRedirect();
-        $client->followRedirect();
-
-        $link = $crawler
-            ->filter('a:contains("Новый")')
-            ->link();
-
-        $crawler = $client->click($link);
-
-        $this->assertEquals(
-            200, // or Symfony\Component\HttpFoundation\Response::HTTP_OK
-            $client->getResponse()->getStatusCode()
-        );
-
-    }
-
 
     public function testNewCourse(): void
     {
@@ -198,6 +178,8 @@ class StudyonTest extends WebTestCase
 
 
         $buttonCrawlerNode = $crawler->selectButton('Создать');
+
+
         $form = $buttonCrawlerNode->form();
 
         //все значения являются валидными
@@ -225,64 +207,6 @@ class StudyonTest extends WebTestCase
             200,
             $client->getResponse()->getStatusCode()
         );
-
-
-    }
-
-////    переход на страницу создания урока и создаем урок
-    public function testNewLesson()
-    {
-        $client = $this->makeClient();
-        $this->setFixtures();
-        $crawler = $this->doAuth($client, "admin@mail.ru", "qwerty");
-        $crawler = $client->followRedirect();
-
-        $link = $crawler
-            ->filter('a:contains("Новый")')
-            ->link();
-        $crawler = $client->click($link);
-
-
-        $buttonCrawlerNode = $crawler->selectButton('Создать');
-        $form = $buttonCrawlerNode->form();
-
-        $client->submit($form, array(
-            'course[code]' => '126',
-            'course[name]' => 'Guitar master',
-            'course[description]' => 'some description'
-        ));
-
-
-        $this->assertTrue(
-            $client->getResponse()->isRedirect('/course/'));
-
-        $crawler = $client->followRedirect();
-
-        $linkCourse = $crawler->filter('a:contains("curse number6")')->link();
-        $crawler = $client->click($linkCourse);
-
-
-        $linkCourse = $crawler->filter('a:contains("Добавить урок")')->link();
-        $crawler = $client->click($linkCourse);
-
-        $buttonCrawlerNode = $crawler->selectButton('Создать');
-        $form = $buttonCrawlerNode->form();
-
-        $client->submit($form, array(
-            'form[name]' => 'Lesson8',
-            'form[content]' => 'some content for lesson',
-            'form[number]' => '15'
-        ));
-
-
-        //Переход на страницу курса к котоу привязан урок
-        $this->assertTrue(
-            $client->getResponse()->isRedirect('/course/2'));
-
-        $crawler = $client->followRedirect();
-
-        //Проверяем, что количество уроков изменилось
-        $this->assertCount(2, $crawler->filter('li'));
 
 
     }
@@ -320,10 +244,11 @@ class StudyonTest extends WebTestCase
     }
 
 
-    public function testUniqueCodeCourse() {
+    public function testFormCodeCourse() {
         $client = $this->makeClient();
         $this->setFixtures();
         $crawler = $this->doAuth($client, "admin@mail.ru", "qwerty");
+        $crawler = $client->followRedirect();
         $crawler = $client->followRedirect();
 
 
@@ -332,20 +257,62 @@ class StudyonTest extends WebTestCase
             ->link();
         $crawler = $client->click($link);
 
-
         $buttonCrawlerNode = $crawler->selectButton('Создать');
         $form = $buttonCrawlerNode->form();
 
-        //coursecode = 6 уже задействован в фикстуре
+        //coursecode = barber-muzhskoy-parikmaher уже задействован в фикстуре
         $client->submit($form, array(
-            'course[code]' => '6',
+            'course[code]' => 'barber-muzhskoy-parikmaher',
             'course[name]' => 'Guitar master',
-            'course[description]' => 'some description'
+            'course[description]' => 'some description',
+            'course[type]' => '0',
+            'course[cost]' => '0'
         ));
 
         //проверяем на уникальность
         $this->assertStringContainsString(
             'This value is already used',
+            $client->getResponse()->getContent()
+        );
+
+
+        $client->submit($form, array(
+            'course[code]' => 'test',
+            'course[name]' => 'test',
+            'course[description]' => 'some description',
+            'course[type]' => '0',
+            'course[cost]' => '100'
+        ));
+
+        $this->assertStringContainsString(
+            'Нельзя установить стоимость бесплатному курса  больше 0',
+            $client->getResponse()->getContent()
+        );
+
+
+        $client->submit($form, array(
+            'course[code]' => 'test',
+            'course[name]' => 'test',
+            'course[description]' => 'some description',
+            'course[type]' => '1',
+            'course[cost]' => '0'
+        ));
+
+        $this->assertStringContainsString(
+            'У платных курсов должна быть указана цена',
+            $client->getResponse()->getContent()
+        );
+
+        $client->submit($form, array(
+            'course[code]' => 'test',
+            'course[name]' => 'test',
+            'course[description]' => 'some description',
+            'course[type]' => '1',
+            'course[cost]' => '-12'
+        ));
+
+        $this->assertStringContainsString(
+            'Цена не может быть меньше 0',
             $client->getResponse()->getContent()
         );
 
