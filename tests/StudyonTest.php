@@ -36,8 +36,8 @@ class StudyonTest extends WebTestCase
         $buttonCrawlerNode = $crawler->selectButton('submit');
 
         $form = $buttonCrawlerNode->form(array(
-            'email' => 'admin@mail.ru',
-            'password' => 'qwerty',
+            'email' => $email,
+            'password' => $pass,
         ));
 
         $client->submit($form);
@@ -316,5 +316,47 @@ class StudyonTest extends WebTestCase
             $client->getResponse()->getContent()
         );
 
+    }
+
+
+    public function testSimpleUser()
+    {
+        $client = $this->makeClient();
+        $this->setFixtures();
+        $crawler = $this->doAuth($client, "shadersy97@mail.ru", "qwerty");
+        $crawler = $client->followRedirect();
+        $crawler = $client->followRedirect();
+
+
+        //не может редактировать по ссылке
+        $crawler = $client->request('POST', '/course/1/edit');
+        $this->assertTrue(
+            $client->getResponse()->isRedirect('/course/'));
+        $crawler = $client->followRedirect();
+
+        //не может удалить по ссылке
+        $crawler = $client->request('POST', '/course/1');
+        $this->assertTrue(
+            $client->getResponse()->isRedirect('/course/'));
+        $crawler = $client->followRedirect();
+
+        //нет кнопки создания курса
+        $this->assertNotEquals(
+            'Новый курс',
+            $client->getResponse()->getContent()
+        );
+
+        //переходя по ссылке не создаст новый курс
+        $crawler = $client->request('POST', '/course/new');
+        $this->assertTrue(
+            $client->getResponse()->isRedirect('/course/'));
+        $crawler = $client->followRedirect();
+
+
+        $crawler = $client->request('GET', '/course/1');
+        $this->assertNotEquals(
+            'Delete',
+            $client->getResponse()->getContent()
+        );
     }
 }
