@@ -64,16 +64,10 @@ class BillingClient
         }
 
 
-        $tokenParts = explode(".", $apiToken['token']);
-        $tokenHeader = base64_decode($tokenParts[0]);
-        $tokenPayload = base64_decode($tokenParts[1]);
-        $jwtHeader = json_decode($tokenHeader);
-        $jwtPayload = json_decode($tokenPayload);
+        $payload = $this->getPayload($apiToken['token']);
 
         $user = new User();
-
-
-        $user->setRoles($jwtPayload->roles);
+        $user->setRoles($payload->roles);
         $user->setApiToken($apiToken['token']);
         $user->setRefreshToken($apiToken['refresh_token']);
 
@@ -126,17 +120,10 @@ class BillingClient
             return null;
         }
 
-
-        $tokenParts = explode(".", $apiToken['token']);
-        $tokenHeader = base64_decode($tokenParts[0]);
-        $tokenPayload = base64_decode($tokenParts[1]);
-        $jwtHeader = json_decode($tokenHeader);
-        $jwtPayload = json_decode($tokenPayload);
+        $payload = $this->getPayload($apiToken['token']);
 
         $user = new User();
-
-
-        $user->setRoles($jwtPayload->roles);
+        $user->setRoles($payload->roles);
         $user->setApiToken($apiToken['token']);
         $user->setRefreshToken($apiToken["refreshToken"]);
 
