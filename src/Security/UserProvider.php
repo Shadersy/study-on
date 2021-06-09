@@ -43,8 +43,6 @@ class UserProvider implements UserProviderInterface, PasswordUpgraderInterface
         $user->setEmail($username);
 
         return $user;
-
-
     }
 
     /**
@@ -71,7 +69,7 @@ class UserProvider implements UserProviderInterface, PasswordUpgraderInterface
         $expDateTime = date('Y-m-d H:i:s', $jwtPayload->exp);
         $currentDateTime = date('Y-m-d H:i:s', time());
 
-        if ($expDateTime < $currentDateTime){
+        if ($expDateTime < $currentDateTime) {
             $user->setApiToken($this->bilingService->refreshToken($user->getRefreshToken())->token);
             $user->setRefreshToken($this->bilingService->refreshToken($user->getRefreshToken())->refresh_token);
         }

@@ -18,7 +18,7 @@ class CourseType extends AbstractType
             'Бесплатный' => 0,
             'Покупка' => 1,
                 'Аренда' => 2,
-    ]])
+        ]])
             ->add('name')
             ->add('description')
             ->add('cost');

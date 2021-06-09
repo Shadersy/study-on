@@ -80,7 +80,7 @@ class SecurityController extends AbstractController
     /**
      * @Route("/profile/transactions", name="app_transactions", methods={"GET"})
      */
-    public function transactions() : Response
+    public function transactions(): Response
     {
         $userFromToken = $this->tokenStorage->getToken()->getUser();
         $transactions = $this->bilingService->getTransactions($userFromToken->getApiToken());
@@ -163,5 +163,4 @@ class SecurityController extends AbstractController
             'form' => $form->createView(), "error" => null
         ));
     }
-
 }

@@ -156,7 +156,6 @@ class CourseController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-
             $token = $this->tokenStorage->getToken()->getUser()->getApiToken();
 
             $params = [
@@ -253,5 +252,4 @@ class CourseController extends AbstractController
             'course' => $course,
         ]);
     }
-
 }

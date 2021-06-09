@@ -20,7 +20,6 @@ class LessonType extends AbstractType
             ->add('content', TextareaType::class)
             ->add('number', IntegerType::class)
             ->add('course', HiddenType::class, $options);
-
     }
 
     public function buildFormWithoutCourse(FormBuilderInterface $builder)
@@ -29,7 +28,6 @@ class LessonType extends AbstractType
             ->add('name', TextType::class)
             ->add('content', TextareaType::class)
             ->add('number', IntegerType::class);
-
     }
 
     public function configureOptions(OptionsResolver $resolver)

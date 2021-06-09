@@ -30,7 +30,7 @@ class LessonController extends AbstractController
     private $bilingService;
     private $tokenStorage;
 
-    public function __construct(BillingClient $billingService,  TokenStorageInterface $tokenStorage)
+    public function __construct(BillingClient $billingService, TokenStorageInterface $tokenStorage)
     {
         $this->bilingService = $billingService;
         $this->tokenStorage = $tokenStorage;

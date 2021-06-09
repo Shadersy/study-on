@@ -18,5 +18,4 @@ class IndexController extends AbstractController
     {
         return  $this->redirectToRoute('course_index');
     }
-
 }

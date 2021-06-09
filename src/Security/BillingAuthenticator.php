@@ -27,8 +27,11 @@ class BillingAuthenticator extends AbstractFormLoginAuthenticator
     private $csrfTokenManager;
     private $billingClient;
 
-    public function __construct(BillingClient $billingClient, UrlGeneratorInterface $urlGenerator, CsrfTokenManagerInterface $csrfTokenManager)
-    {
+    public function __construct(
+        BillingClient $billingClient,
+        UrlGeneratorInterface $urlGenerator,
+        CsrfTokenManagerInterface $csrfTokenManager
+    ) {
         $this->urlGenerator = $urlGenerator;
         $this->csrfTokenManager = $csrfTokenManager;
         $this->billingClient = $billingClient;
@@ -68,20 +71,14 @@ class BillingAuthenticator extends AbstractFormLoginAuthenticator
 
 
         if ($user == null) {
-
             throw new CustomUserMessageAuthenticationException('Сервис временно недопступен, попробуйте авторизироваться позже.');
         }
 
 
         if (is_array($user) && in_array('Invalid credentials.', $user)) {
             throw new CustomUserMessageAuthenticationException("Неверный логин или пароль");
-        }
-
-        else {
-
-//            $user = $userProvider->loadUserByUsername($credentials['email']);
+        } else {
             $user->setEmail($credentials['email']);
-
         }
 
 

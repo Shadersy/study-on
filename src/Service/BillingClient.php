@@ -2,9 +2,7 @@
 
 namespace App\Service;
 
-
 use App\Security\User;
-
 
 class BillingClient
 {
@@ -40,7 +38,10 @@ class BillingClient
         $apiToken = json_decode(
             $this->sendRequest(
                 $_ENV["HOST_NAME_BILLING"] . '/api/v1/auth',
-                ['username' => $login, 'password' => $password]), true);
+                ['username' => $login, 'password' => $password]
+            ),
+            true
+        );
 
 
         if ($apiToken == null) {
@@ -126,7 +127,10 @@ class BillingClient
         $apiToken = json_decode(
             $this->sendRequest(
                 $_ENV["HOST_NAME_BILLING"] . '/api/v1/register',
-            ['email' => $email, 'password' => $password]), true);
+                ['email' => $email, 'password' => $password]
+            ),
+            true
+        );
 
 
         if (is_array($apiToken) && array_key_exists('error', $apiToken)) {
@@ -284,7 +288,8 @@ class BillingClient
     {
         $response = json_decode($this->sendRequest(
             $_ENV["HOST_NAME_BILLING"] . '/api/v1/token/refresh',
-            ['refresh_token' => $expiredToken]));
+            ['refresh_token' => $expiredToken]
+        ));
 
         return $response;
     }
