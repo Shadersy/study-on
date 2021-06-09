@@ -19,10 +19,10 @@ final class Version20210608063142 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-      $this->addSql('CREATE SEQUENCE lesson_id_seq');
-      $this->addSql('ALTER SEQUENCE lesson_id_seq owner to pguser');
-      $this->addSql('CREATE SEQUENCE course_id_seq');
-      $this->addSql('ALTER SEQUENCE course_id_seq owner to pguser');
+      $this->addSql('create sequence lesson_id_seq');
+      $this->addSql('alter sequence lesson_id_seq owner to pguser');
+      $this->addSql('create sequence course_id_seq');
+      $this->addSql('alter sequence course_id_seq owner to pguser');
 
     }
 
