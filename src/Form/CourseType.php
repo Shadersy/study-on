@@ -4,6 +4,7 @@ namespace App\Form;
 
 use App\Entity\Course;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -13,7 +14,11 @@ class CourseType extends AbstractType
     {
         $builder
             ->add('code')
-            ->add('type')
+            ->add('type', ChoiceType::class, ['choices'  => [
+            'Бесплатный' => 0,
+            'Покупка' => 1,
+                'Аренда' => 2,
+    ]])
             ->add('name')
             ->add('description')
             ->add('cost');
