@@ -7,20 +7,31 @@ use App\Security\User;
 class BillingClient
 {
 
-    protected function sendRequest(string $url, array $parameters)
+    protected function sendRequest(string $url, ?array $parameters, ?string $token, ?string $method)
     {
         $ch = curl_init();
 
 
         curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($parameters));
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
+        if ((str_contains($method, 'POST'))) {
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($parameters));
+            curl_setopt($ch, CURLOPT_POST, 1);
+        }
+
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
 
         curl_setopt($ch, CURLOPT_HTTPHEADER, array(
             'Content-Type: application/json',
         ));
+
+        if ($token) {
+            $requestHeader = "Authorization: Bearer " . $token;
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+            $requestHeader
+            ));
+        }
 
         $result = curl_exec($ch);
 
@@ -30,15 +41,15 @@ class BillingClient
 
         return $result;
     }
-
     public function login(string $login, string $password)
     {
-
-
         $apiToken = json_decode(
             $this->sendRequest(
                 $_ENV["HOST_NAME_BILLING"] . '/api/v1/auth',
-                ['username' => $login, 'password' => $password]
+                ['username' => $login,
+                    'password' => $password],
+                null,
+                'POST'
             ),
             true
         );
@@ -72,62 +83,36 @@ class BillingClient
 
     public function getBalanceToProfile(string $token)
     {
-
-        $ch = curl_init();
-
-
-        $requestHeader = "Authorization: Bearer " . $token;
-
-
-        curl_setopt($ch, CURLOPT_URL, $_ENV["HOST_NAME_BILLING"] . '/api/v1/current');
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-            $requestHeader
-        ));
-
-        $balance = curl_exec($ch);
-
-        curl_close($ch);
-
-
-        return json_decode($balance)->balance;
+        $result = $this->sendRequest(
+            $_ENV["HOST_NAME_BILLING"] . '/api/v1/current',
+            null,
+            $token,
+            'POST'
+        );
+        return json_decode($result)->balance;
     }
 
     public function getTransactions(string $token)
     {
-        $ch = curl_init();
 
-
-        $requestHeader = "Authorization: Bearer " . $token;
-
-        curl_setopt($ch, CURLOPT_URL, $_ENV["HOST_NAME_BILLING"] . '/api/v1/transactions');
-
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-            $requestHeader
-        ));
-
-        $transactions = curl_exec($ch);
-
-        curl_close($ch);
-
+        $transactions = $this->sendRequest(
+            $_ENV["HOST_NAME_BILLING"] . '/api/v1/transactions',
+            null,
+            $token,
+            'GET'
+        );
         return $transactions;
     }
 
 
     public function doSignup(string $email, string $password)
     {
-
-        $ch = curl_init();
-
-
         $apiToken = json_decode(
             $this->sendRequest(
                 $_ENV["HOST_NAME_BILLING"] . '/api/v1/register',
-                ['email' => $email, 'password' => $password]
+                ['email' => $email, 'password' => $password],
+                null,
+                'POST'
             ),
             true
         );
@@ -155,77 +140,44 @@ class BillingClient
         $user->setApiToken($apiToken['token']);
         $user->setRefreshToken($apiToken["refreshToken"]);
 
-        curl_close($ch);
-
         return $user;
     }
 
 
     public function getCourses(string $token)
     {
-        $ch = curl_init();
-
-
-        $requestHeader = "Authorization: Bearer " . $token;
-
-        curl_setopt($ch, CURLOPT_URL, $_ENV["HOST_NAME_BILLING"] . '/api/v1/courses');
-
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-            $requestHeader
-        ));
-
-        $courses = curl_exec($ch);
-
-        curl_close($ch);
-
-
+        $courses = $this->sendRequest(
+            $_ENV["HOST_NAME_BILLING"] . '/api/v1/courses',
+            null,
+            $token,
+            'GET'
+        );
         return $courses;
     }
 
 
     public function payCourse(string $token, string $code)
     {
-        $ch = curl_init();
-
-        $requestHeader = "Authorization: Bearer " . $token;
-
-
-        curl_setopt($ch, CURLOPT_URL, $_ENV["HOST_NAME_BILLING"] . '/api/v1/courses/' . $code . '/pay');
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-            $requestHeader
-        ));
-
-        $response = curl_exec($ch);
-
-        curl_close($ch);
+        $response = $this->sendRequest(
+            $_ENV["HOST_NAME_BILLING"] . '/api/v1/courses/' . $code . '/pay',
+            null,
+            $token,
+            'POST'
+        );
 
         return $response;
     }
 
     public function checkAvailableCourse(string $token, string $code)
     {
-        $ch = curl_init();
-
-        $requestHeader = "Authorization: Bearer " . $token;
-
-
-        curl_setopt($ch, CURLOPT_URL, $_ENV["HOST_NAME_BILLING"] .
+        $response = $this->sendRequest(
+            $_ENV["HOST_NAME_BILLING"] .
             '/api/v1/transactions?filter[course]=' . $code .
-            '&filter[skipexpired]=true&filter[type]=payment');
-
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-            $requestHeader
-        ));
-
-        $response = curl_exec($ch);
-        curl_close($ch);
+            '&filter[skipexpired]=true&filter[type]=payment',
+            null,
+            $token,
+            'GET'
+        );
 
         return $response;
     }
@@ -233,25 +185,14 @@ class BillingClient
 
     public function createCourse(string $token, array $params)
     {
-
-        $requestHeader = "Authorization: Bearer " . $token;
-
-
-        $ch = curl_init();
-
-
-        curl_setopt($ch, CURLOPT_URL, $_ENV["HOST_NAME_BILLING"] . '/api/v1/courses');
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($params));
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-            'Content-Type: application/json', $requestHeader
-        ));
-
-
-        $response = json_decode(curl_exec($ch));
-        curl_close($ch);
-
+        $response = json_decode(
+            $this->sendRequest(
+                $_ENV["HOST_NAME_BILLING"] . '/api/v1/courses',
+                $params,
+                $token,
+                'POST'
+            )
+        );
 
         return $response;
     }
@@ -259,28 +200,12 @@ class BillingClient
 
     public function editCourse(string $token, array $params, string $currentCode)
     {
-
-        $requestHeader = "Authorization: Bearer " . $token;
-
-
-        $ch = curl_init();
-
-
-        curl_setopt($ch, CURLOPT_URL, $_ENV["HOST_NAME_BILLING"] . '/api/v1/courses/' . $currentCode);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($params));
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-            'Content-Type: application/json', $requestHeader
+        $response = json_decode($this->sendRequest(
+            $_ENV["HOST_NAME_BILLING"] . '/api/v1/courses/' . $currentCode,
+            $params,
+            $token,
+            'POST'
         ));
-
-
-        $response = json_decode(curl_exec($ch));
-
-
-        curl_close($ch);
-
-
         return $response;
     }
 
@@ -288,7 +213,9 @@ class BillingClient
     {
         $response = json_decode($this->sendRequest(
             $_ENV["HOST_NAME_BILLING"] . '/api/v1/token/refresh',
-            ['refresh_token' => $expiredToken]
+            ['refresh_token' => $expiredToken],
+            null,
+            'POST'
         ));
 
         return $response;
