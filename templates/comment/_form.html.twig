@@ -2,7 +2,5 @@
     {% form_theme form 'bootstrap_4_layout.html.twig' %}
     {{ form_widget(form) }}
 <br>
-<p>
-    <button class="btn btn-outline-primary">{{ button_label|default('Создать') }}</button>
-</p>
+<button class="btn btn-outline-primary">{{ button_label|default('Отправить') }}</button>
 {{ form_end(form) }}

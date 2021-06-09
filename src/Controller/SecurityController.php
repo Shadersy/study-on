@@ -1,55 +1,92 @@
 <?php
 
+
 namespace App\Controller;
 
-use App\Entity\Course;
+
 use App\Entity\User;
-use App\Form\CourseType;
-use App\Security\BillingAuthenticator;
-use App\Service\BillingClient;
-use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use App\Entity\UserDeprecated;
+use App\Form\AuthorizationFormType;
+use App\Repository\UserRepository;
+use Captcha\Bundle\CaptchaBundle\Controller\CaptchaHandlerController;
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
-use Symfony\Component\Form\FormTypeInterface;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
-use Symfony\Component\Security\Core\User\UserInterface;
-use Symfony\Component\Security\Guard\GuardAuthenticatorHandler;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\HttpFoundation\Response;
 
 class SecurityController extends AbstractController
 {
-    private $bilingService;
+    private $entityManager;
     private $tokenStorage;
+    private $session;
 
-    public function __construct(BillingClient $billingService, TokenStorageInterface $tokenStorage)
+    public function __construct(
+        TokenStorageInterface $tokenStorage,
+        EntityManagerInterface $em,
+        SessionInterface $session
+    )
     {
-        $this->bilingService = $billingService;
         $this->tokenStorage = $tokenStorage;
+        $this->entityManager = $em;
+        $this->session = $session;
     }
 
     /**
-     * @Route("/login", name="app_login")
+     * @param Request $request
+     *
+     * @Route("/login", name="app_login", methods={"GET", "POST"})
      */
-    public function login(AuthenticationUtils $authenticationUtils, AuthorizationCheckerInterface $authChecker): Response
+    public function loginAction(Request $request, UserRepository $userRepository, AuthorizationCheckerInterface $authChecker): Response
     {
 
-        if ($this->getUser() != null) {
-            return $this->redirectToRoute('course_index');
-        }
+//        if ($authChecker->isGranted('ROLE_USER')) {
+//            return $this->redirectToRoute('ticket_index');
+//        }
+//
+//        $user = new User();
+//
+//        $form = $this->createForm(AuthorizationFormType::class, $user);
+//
+//        $form->handleRequest($request);
+//
+//        if ($form->isSubmitted() && $form->isValid()) {
+//
+//
+//            $authenticatedUser = $userRepository->findOneBy(['login' => $user->getLogin(), 'password' => $user->getPassword()]);
+//
+//            if (!$authenticatedUser) {
+//                return $this->render('security/register.html.twig', [
+//                    'authorizationForm' => $form->createView(),
+//                    'error' => 'Данные не верные'
+//                ]);
+//            }
 
-        $error = $authenticationUtils->getLastAuthenticationError();
-        // last username entered by the user
-        $lastUsername = $authenticationUtils->getLastUsername();
+//            $token = new UsernamePasswordToken($authenticatedUser->getLogin(), null, 'main', $user->getRoles());
+//
+//            $this->tokenStorage->setToken($token);
+//
+//            $this->session->set('_security_main', serialize($token));
+//            $this->session->save();
 
-        return $this->render('security/login.html.twig', ['last_username' => $lastUsername, 'error' => $error]);
+
+//            dump($this->getUser());die;
+            return $this->redirectToRoute('ticket_index');
+//        }
+
+//        return $this->render('security/register.html.twig', [
+////            'authorizationForm' => $form->createView(),
+//        ]);
     }
 
     /**
@@ -58,109 +95,5 @@ class SecurityController extends AbstractController
     public function logout()
     {
         throw new \LogicException('This method can be blank - it will be intercepted by the logout key on your firewall.');
-    }
-
-    /**
-     * @Route("/profile", name="app_profile", methods={"GET"})
-     */
-    public function profile(): Response
-    {
-
-        $userFromToken = $this->tokenStorage->getToken()->getUser();
-        $balance = $this->bilingService->getBalanceToProfile($userFromToken->getApiToken());
-
-        return $this->render('security/profile.html.twig', [
-            'username' => $userFromToken->getEmail(),
-            'roles' => $userFromToken->getRoles(),
-            'balance' => $balance
-        ]);
-    }
-
-
-    /**
-     * @Route("/profile/transactions", name="app_transactions", methods={"GET"})
-     */
-    public function transactions(): Response
-    {
-        $userFromToken = $this->tokenStorage->getToken()->getUser();
-        $transactions = $this->bilingService->getTransactions($userFromToken->getApiToken());
-
-
-        return $this->render('security/transactions.html.twig', array(
-            'transactions' => json_decode($transactions, true)
-        ));
-    }
-
-
-
-    /**
-     * @Route("/signup", name="app_registry",  methods={"GET","POST"})
-     */
-    public function signup(
-        Request $request,
-        GuardAuthenticatorHandler $guardHandler,
-        BillingAuthenticator $authenticator
-    ): Response {
-
-
-        if ($this->getUser() != null) {
-            return $this->redirectToRoute('main_course_index');
-        }
-
-        $user = new \App\Security\User();
-
-        $form = $this->createFormBuilder($user)
-            ->add('email', TextType::class)
-            ->add('password', PasswordType::class, array('label' => 'Пароль'))
-            ->add('conformationPassword', PasswordType::class, array('label' => 'Подтвердите пароль'))
-            ->add('save', SubmitType::class, array('label' => 'Принять'))
-            ->getForm();
-
-
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $email = $form->getData()->getEmail();
-            $password = $form->getData()->getPassword();
-
-            $res  = $this->bilingService->doSignup($email, $password);
-
-
-            if ($res == null) {
-                $response = new Response();
-                $response->setStatusCode('404');
-
-
-                return $this->render('security/register.html.twig', array(
-                    'form' => $form->createView(), 'error' => "Сервис временно недоступен", $response));
-            }
-
-            if (is_array($res) && array_key_exists('error', $res)) {
-                $response = new Response();
-                $response->setStatusCode('404');
-
-                return $this->render('security/register.html.twig', array(
-                    'form' => $form->createView(), 'error' => "Пользователь с таким email  существует", $response));
-            }
-
-
-
-            $user->setEmail($email);
-            $user->setPassword($password);
-            $user->setApiToken($res->getApiToken());
-
-
-            return $guardHandler->authenticateUserAndHandleSuccess(
-                $user,          // the User object you just created
-                $request,
-                $authenticator, // authenticator whose onAuthenticationSuccess you want to use
-                'main'          // the name of your firewall in security.yaml
-            );
-
-        }
-
-        return $this->render('security/register.html.twig', array(
-            'form' => $form->createView(), "error" => null
-        ));
     }
 }

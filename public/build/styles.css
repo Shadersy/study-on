@@ -1966,6 +1966,16 @@ progress {
   border-bottom-width: 0;
 }
 
+.my-custom-scrollbar {
+  position: relative;
+  height: 200px;
+  overflow: auto;
+}
+
+.table-wrapper-scroll-y {
+  display: block;
+}
+
 .table-striped > tbody > tr:nth-of-type(odd) {
   --bs-table-accent-bg: var(--bs-table-striped-bg);
   color: var(--bs-table-striped-color);
@@ -2027,6 +2037,16 @@ progress {
   --bs-table-hover-color: #000;
   color: #000;
   border-color: #badce3;
+}
+
+.table-wrapper {
+  max-height: 100px;
+  overflow: auto;
+  display:inline-block;
+}
+
+.table-earnings {
+  background: #F3F5F6;
 }
 
 .table-warning {

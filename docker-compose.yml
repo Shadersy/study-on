@@ -10,7 +10,7 @@ services:
       - ./docker/hosts/app.conf:/etc/nginx/conf.d/default.conf
       - ./docker/hosts/symfony:/etc/nginx/symfony
     ports:
-      - "${NGINX_PORT}:80"
+      - "${NGINX_PORT}:81"
     links:
       - php
   postgres:
@@ -31,6 +31,19 @@ services:
       - COMPOSER_ALLOW_SUPERUSER=1
     links:
       - postgres
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    volumes:
+      - ./.docker/rabbitmq/etc/:/etc/rabbitmq/
+      - ./.docker/rabbitmq/data/:/var/lib/rabbitmq/
+      - ./.docker/rabbitmq/logs/:/var/log/rabbitmq/
+    ports:
+            - "5672:5672"
+            - "15672:15672"
+    networks:
+        - rabbitmq_go_net
+
   node:
     image: node:alpine
     environment:
@@ -41,6 +54,5 @@ services:
       - ${PWD}:/app
       - ${HOME}/.yarn:/yarn
 networks:
-  default:
-    external:
-      name: studyonbilling_default
+  rabbitmq_go_net:
+    driver: bridge

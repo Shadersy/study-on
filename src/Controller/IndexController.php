@@ -3,19 +3,24 @@
 namespace App\Controller;
 
 
-use App\Repository\CourseRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 
 class IndexController extends AbstractController
 {
     /**
-     * @Route("/", name="main_course_index", methods={"GET"})
+     * @Route("/new_user", name="main_ticket_index", methods={"GET"})
      */
-    public function index(CourseRepository $courseRepository): Response
+    public function index(AuthorizationCheckerInterface $authChecker): Response
     {
-        return  $this->redirectToRoute('course_index');
+
+        if ($authChecker->isGranted('ROLE_USER')) {
+            return $this->redirectToRoute('ticket_index');
+        }
+
+        return  $this->redirectToRoute('app_login');
     }
 }

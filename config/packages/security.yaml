@@ -1,37 +1,21 @@
+# config/packages/security.yaml
 security:
-    # https://symfony.com/doc/current/security.html#where-do-users-come-from-user-providers
-    providers:
-        # used to reload user from session & other features (e.g. switch_user)
-        app_user_provider:
-            id: App\Security\UserProvider
-    firewalls:
-        dev:
-            pattern: ^/(_(profiler|wdt)|css|images|js)/
-            security: false   
-        main:
-            anonymous: true
-            provider: app_user_provider
-            guard:
-                authenticators:
-                    - App\Security\BillingAuthenticator
-            logout:
-                path: app_logout
-                target: app_login
-            remember_me:
-                secret:   '%kernel.secret%'
-                lifetime: 604800 # 1 week in seconds
-                path:  /course   
+  # ...
 
-            # activate different ways to authenticate
-            # https://symfony.com/doc/current/security.html#firewalls-authentication
+  providers:
+    app_user_provider:
+      entity:
+        class: App\Entity\User
+        property: login
 
-            # https://symfony.com/doc/current/security/impersonating_user.html
-            # switch_user: true
-
-    # Easy way to control access for large sections of your site
-    # Note: Only the *first* access control that matches will be used
-    access_control:
-        - { path: ^/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
-        - { path: ^/signup, roles: IS_AUTHENTICATED_ANONYMOUSLY }
-
-  
+  firewalls:
+    dev:
+      pattern: ^/(_(profiler|wdt)|css|images|js)/
+      security: false
+    main:
+      anonymous: true
+      form_login:
+        login_path: app_login
+        login_check: index_ticket
+      logout:
+        path: app_logout
